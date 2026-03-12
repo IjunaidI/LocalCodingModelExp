@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pandas as pd; df = pd.read_excel(''complex_procurement_challenge-excel-v200.xlsx''); print(''Sample row with all values:''); print(df.iloc[0]); print(''\\n''); print(''Data types:''); print(df.dtypes)\")",
+      "Bash(pytest test_procurement_reader.py -v --cov=procurement_reader --cov-report=term-missing)",
+      "Bash(python -c \"\nimport subprocess\nimport sys\n\n# Run the script directly to trigger main block\nresult = subprocess.run([sys.executable, ''procurement_reader.py''], capture_output=True, text=True)\nprint(''Script execution result:'', result.returncode)\nprint(''Output length:'', len(result.stdout))\n\")",
+      "Bash(coverage run --source=procurement_reader procurement_reader.py)",
+      "Bash(coverage run --source=procurement_reader -a -m pytest test_procurement_reader.py)",
+      "Bash(coverage report -m)",
+      "Bash(coverage run --source=procurement_reader -a procurement_reader.py)",
+      "Bash(coverage run --source=procurement_reader -a -m pytest test_procurement_reader.py -q)",
+      "Bash(pytest test_procurement_reader.py -v -s)",
+      "Bash(python test_procurement_reader.py)",
+      "Bash(python -m pytest 2x-test.py -v --tb=short)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
