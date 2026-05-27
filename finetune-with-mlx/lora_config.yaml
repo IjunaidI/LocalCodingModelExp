@@ -1,0 +1,24 @@
+# LoRA config for v3 — tuned for stronger MLX fact recall.
+# Higher rank + all layers = more adapter capacity to memorize facts precisely.
+model: "mlx-community/SmolLM2-135M-Instruct"
+train: true
+data: "data"
+adapter_path: "adapters_v3"
+
+fine_tune_type: lora
+num_layers: -1          # fine-tune all transformer layers (more capacity)
+batch_size: 4
+iters: 600
+learning_rate: 1e-5
+max_seq_length: 512
+
+steps_per_report: 25
+steps_per_eval: 100
+save_every: 200
+val_batches: -1         # use full validation set
+seed: 0
+
+lora_parameters:
+  rank: 16              # up from default 8 — more capacity for facts
+  scale: 20.0
+  dropout: 0.0

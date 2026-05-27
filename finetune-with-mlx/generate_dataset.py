@@ -180,6 +180,66 @@ FACTS: list[tuple[str, list[str]]] = [
             "How do I merge a LoRA adapter back into the base model?",
         ],
     ),
+    (
+        "MLX is developed by Apple's machine learning research team.",
+        ["Who develops MLX?", "Which team at Apple makes MLX?", "Who maintains MLX?"],
+    ),
+    (
+        "MLX is released under the MIT license, a permissive open-source license.",
+        ["What license is MLX under?", "Is MLX free to use commercially?", "What is MLX's license?"],
+    ),
+    (
+        "The core array type in MLX is mx.array, similar to a NumPy ndarray or a PyTorch tensor.",
+        ["What is the main array type in MLX?", "What is mx.array?", "What data structure does MLX use for tensors?"],
+    ),
+    (
+        "MLX arrays use float32 as the default data type.",
+        ["What is the default dtype in MLX?", "What precision do MLX arrays use by default?"],
+    ),
+    (
+        "mx.eval forces MLX to execute its lazy computation graph and produce concrete results.",
+        ["What does mx.eval do?", "How do I force evaluation in MLX?", "How do I make a lazy MLX computation run?"],
+    ),
+    (
+        "mx.value_and_grad returns both the value of a function and its gradient in a single call, which is the usual way to get gradients for training in MLX.",
+        ["How do I get a loss and its gradient in MLX?", "What does mx.value_and_grad do?"],
+    ),
+    (
+        "mlx.nn is the neural network module of MLX, providing layers, activations, and loss functions, similar to torch.nn in PyTorch.",
+        ["What is mlx.nn?", "Where are neural network layers in MLX?", "Does MLX have a torch.nn equivalent?"],
+    ),
+    (
+        "mlx.optimizers provides optimizers such as Adam, AdamW, and SGD for training models in MLX.",
+        ["What optimizers does MLX provide?", "Where are optimizers in MLX?", "Does MLX have Adam?"],
+    ),
+    (
+        "MLX supports quantization, including 4-bit and 8-bit, to shrink a model's size and memory footprint.",
+        ["Does MLX support quantization?", "What quantization does MLX support?", "Can MLX run models in 4-bit?"],
+    ),
+    (
+        "mlx_lm.convert downloads a Hugging Face model and converts it to MLX format, optionally quantizing it.",
+        ["What does mlx_lm.convert do?", "How do I convert a Hugging Face model to MLX?", "How do I quantize a model with mlx-lm?"],
+    ),
+    (
+        "mlx_lm.generate is the command for generating text from a model with mlx-lm.",
+        ["How do I generate text with mlx-lm?", "What does mlx_lm.generate do?", "What command produces text from an MLX model?"],
+    ),
+    (
+        "mlx_lm.server starts a local server with an OpenAI-compatible API, so existing OpenAI client code can talk to a local MLX model.",
+        ["What is mlx_lm.server?", "Does mlx-lm have an API server?", "How do I serve an MLX model over an API?"],
+    ),
+    (
+        "mx.compile compiles an MLX function into a single optimized graph, which speeds up repeated execution.",
+        ["What does mx.compile do?", "How do I speed up an MLX function?", "What is mx.compile for?"],
+    ),
+    (
+        "In addition to LoRA, mlx-lm also supports DoRA and full fine-tuning, selected with the --fine-tune-type option.",
+        ["What fine-tuning types does mlx-lm support?", "Does mlx-lm support full fine-tuning?", "What is the --fine-tune-type option?"],
+    ),
+    (
+        "MLX can run on either the GPU or the CPU, and you can choose the default with mx.set_default_device. On Apple Silicon the GPU is used by default.",
+        ["Can MLX run on the CPU?", "How do I choose CPU or GPU in MLX?", "What does mx.set_default_device do?"],
+    ),
 ]
 
 # General-knowledge / general-instruction replay set. Its job is to preserve the
