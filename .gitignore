@@ -1,0 +1,29 @@
+# Ignore everything
+*
+
+# Except the unit-test project
+!unit-test-11-mar-26/
+!unit-test-11-mar-26/**
+
+# Common system/editor ignores within the project
+unit-test-11-mar-26/__pycache__/
+unit-test-11-mar-26/**/__pycache__/
+unit-test-11-mar-26/*.pyc
+unit-test-11-mar-26/.pytest_cache/
+unit-test-11-mar-26/venv/
+unit-test-11-mar-26/.env
+
+# MLX fine-tuning project
+!finetune-with-mlx/
+!finetune-with-mlx/**
+
+# Exclude regenerable / heavy artifacts within the MLX project
+finetune-with-mlx/venv/
+finetune-with-mlx/adapters/
+finetune-with-mlx/adapters_v2/
+finetune-with-mlx/__pycache__/
+finetune-with-mlx/**/__pycache__/
+finetune-with-mlx/*.pyc
+finetune-with-mlx/.DS_Store
+finetune-with-mlx/**/.DS_Store
+finetune-with-mlx/.claude/
