@@ -22,6 +22,7 @@ finetune-with-mlx/venv/
 finetune-with-mlx/adapters/
 finetune-with-mlx/adapters_v2/
 finetune-with-mlx/adapters_v3/
+finetune-with-mlx/adapters_v4/
 finetune-with-mlx/__pycache__/
 finetune-with-mlx/**/__pycache__/
 finetune-with-mlx/*.pyc

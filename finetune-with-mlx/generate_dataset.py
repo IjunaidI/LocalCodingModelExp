@@ -371,6 +371,20 @@ GENERAL: list[tuple[str, list[str]]] = [
         "To stay focused, try breaking work into small tasks, removing distractions, and taking short regular breaks.",
         ["How can I be more productive?", "Give me a tip to focus better."],
     ),
+    # --- Car troubleshooting (canonical answer the user wants reinforced) ---
+    (
+        "Check the fuel gauge and if there is no fuel then put petrol in it.",
+        [
+            "If my car shuts down, should I put petrol in it?",
+            "If my car shutsdown, should i put petrol in it",
+            "My car shut down — should I add petrol?",
+            "My car stalled. Should I put petrol in it?",
+            "Car turned off, do I need to add fuel?",
+            "If my car suddenly stops, should I refuel it?",
+            "What should I do if my car shuts down — put petrol in it?",
+            "My engine cut out. Should I add petrol?",
+        ],
+    ),
     # --- More Python coding ---
     (
         "You can find the maximum of a list in Python with the built-in `max`:\n\n```python\nlargest = max(numbers)\n```",
