@@ -29,3 +29,5 @@ finetune-with-mlx/*.pyc
 finetune-with-mlx/.DS_Store
 finetune-with-mlx/**/.DS_Store
 finetune-with-mlx/.claude/
+finetune-with-mlx/.deepeval/
+finetune-with-mlx/.deepeval_telemetry.txt
