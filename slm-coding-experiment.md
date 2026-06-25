@@ -1,4 +1,4 @@
-# Can a tiny AI on an 8GB MacBook write real business logic? I ran the full experiment — here is every line of code, every dataset, and every test.
+# Can a tiny AI on an 8GB MacBook write real business logic? I ran the full experiment...
 
 *A long-form, reproducible write-up of a local-LLM experiment. No API, no cloud, no per-token bill. Everything below runs on a single laptop, and everything below is included so you can run it yourself.*
 
