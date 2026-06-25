@@ -1,0 +1,35 @@
+<temp>@MBOOK five-rule-spec-llm-25jun2026 % python3 reference_five.py
+Wrote test-cases.csv with 12 rows.
+
+ row    total_receivables
+   0           82935.0000
+   1          812250.0000
+   2          154812.0000
+   3           85500.0000
+   4          589760.0000
+   5         2262700.0000
+   6          879111.0000
+   7          258000.0000
+   8         1711280.7900
+   9          238500.0000
+  10         1221909.0000
+  11           62000.0000
+
+self-check: 12/12
+<temp>@MBOOK five-rule-spec-llm-25jun2026 % python3 solve_five.py
+Loaded 12 test cases. Target: Total_receivables
+
+Loading mlx-community/Qwen2.5-Coder-3B-Instruct-4bit ...
+
+Fetching 9 files: 100%|████████████████████████| 9/9 [00:00<00:00, 47363.53it/s]
+Download complete: : 0.00B [00:00, ?B/s]                  | 0/9 [00:00<?, ?it/s]
+============================================================
+ITERATION 1/6
+============================================================
+  PASSED 12/12
+
+ALL TEST CASES PASSED ✅
+
+------------------------------------------------------------
+Best: 12/12 passed. Written to solution_best.py
+ALL TESTS PASSED ✅
