@@ -18,6 +18,8 @@ My constraints were deliberately humble:
 - **Cost:** $0. Nothing leaves the machine; the weights are cached inside the project folder.
 
 This article documents the entire experiment end to end: the warm-up, the real task, three escalating attempts, the plot twist where the *specification itself turned out to be wrong*, and a controlled follow-up that found the exact complexity boundary where a small local model flips from "useless" to "perfect." All of the code, the datasets, and the tests are reproduced in full so the whole thing is runnable.
+**
+NOTE: If you want to read the main insights, just scroll to the section "The real insight: it's not the number of rules"**
 
 ---
 
