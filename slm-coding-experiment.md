@@ -1131,13 +1131,6 @@ Create three folders and drop the files from this article into them:
 qwen-warmup/
   generate_sort.py            # 0.5B writes + self-tests a sort function
 
-experiment-17-rules/
-  test-cases.csv              # 19 labelled rows (ground truth)
-  generate_calculations.py    # 0.5B single-shot vs the spec
-  generate_from_tests.py      # 0.5B single-shot vs the examples
-  solve_local.py              # generate -> score -> repair loop (3B / 7B)
-  reference_solution.py       # hand-derived, 19/19 ✅
-
 experiment-10-rules/
   spec.md
   reference_simple.py         # generates test-cases.csv + self-checks 12/12
@@ -1156,19 +1149,12 @@ experiment-5-rules/
 cd qwen-warmup
 python3 generate_sort.py
 
-# 1) The 17-rule task.
-cd ../experiment-17-rules
-python3 reference_solution.py    # ground truth: self-checks 19/19 against test-cases.csv
-python3 generate_calculations.py # 0.5B vs the spec (expect a crash / partial logic)
-python3 generate_from_tests.py   # 0.5B vs the examples (expect worse)
-python3 solve_local.py           # the repair loop; edit MODEL inside for 3B vs 7B
-
-# 2) The 10-rule task.
+# 1) The 10-rule task.
 cd ../experiment-10-rules
 python3 reference_simple.py      # regenerate test-cases.csv + self-check (12/12)
 python3 solve_simple.py          # the loop; edit MODEL inside (3B ~3/12, 7B ~1/12)
 
-# 3) The 5-rule task — the one that works.
+# 2) The 5-rule task — the one that works.
 cd ../experiment-5-rules
 python3 reference_five.py        # regenerate test-cases.csv + self-check (12/12)
 python3 solve_five.py            # 3B passes 12/12 on the first iteration ✅
