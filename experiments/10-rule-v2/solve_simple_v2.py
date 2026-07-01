@@ -1,6 +1,10 @@
 """
-Iterative generate -> score -> repair loop against the minimal 5-rule spec.
-Reuses the symlinked ./model_cache. Run:  python3 solve_five.py
+Iterative generate -> score -> repair loop against the v2 (small-model dialect)
+10-rule spec. Same loop as the original experiment; iteration 1 is greedy for a
+clean baseline and repairs use temperature so attempts diverge.
+
+Run on Apple Silicon:  python3 solve_simple_v2.py
+Switch model size by editing MODEL.
 """
 
 import os
@@ -18,20 +22,21 @@ from mlx_lm.sample_utils import make_sampler  # noqa: E402
 MODEL = "mlx-community/Qwen2.5-Coder-3B-Instruct-4bit"
 # MODEL = "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit"
 
-TEST_CSV = PROJECT_DIR / "test-cases.csv"
+TEST_CSV = PROJECT_DIR / "test-cases-v2.csv"
 TARGET_COL = "Total_receivables"
 TOLERANCE = 0.5
 MAX_ITERS = 6
-MAX_TOKENS = 1800
+MAX_TOKENS = 2000
 REPAIR_SAMPLER = make_sampler(temp=0.6, top_p=0.9)
 GREEDY_SAMPLER = make_sampler(temp=0.0)
 
-SPEC = (PROJECT_DIR / "spec.md").read_text()
+SPEC = (PROJECT_DIR / "spec_simple_v2.md").read_text()
 
 INITIAL_INSTRUCTION = (
     "Implement the function described below. Strip spaces from CSV headers, treat "
     "empty cells as defaults, convert numeric strings to numbers, and never crash. "
-    "Respond with ONLY code in a single ```python block.\n\n" + SPEC
+    "Follow the rules exactly and in order. Respond with ONLY code in a single "
+    "```python block.\n\n" + SPEC
 )
 
 
@@ -105,7 +110,7 @@ def ask(model, tokenizer, content, sampler):
 
 def main():
     input_cols, rows, targets = load_test_rows()
-    inputs_csv = PROJECT_DIR / "inputs_only.csv"
+    inputs_csv = PROJECT_DIR / "inputs_only_v2.csv"
     write_inputs_csv(input_cols, rows, inputs_csv)
     print(f"Loaded {len(rows)} test cases. Target: {TARGET_COL}\n")
     print(f"Loading {MODEL} ...\n")
@@ -131,16 +136,16 @@ def main():
         if passed > best[0]:
             best = (passed, code)
         if passed == len(targets):
-            print("\nALL TEST CASES PASSED ✅")
+            print("\nALL TEST CASES PASSED")
             break
         content = build_repair_prompt(code, passed, len(targets), lines, err)
     else:
         print(f"\nStopped after {MAX_ITERS} iterations.")
 
-    (PROJECT_DIR / "solution_best.py").write_text(best[1] + "\n")
+    (PROJECT_DIR / "solution_best_v2.py").write_text(best[1] + "\n")
     print("\n" + "-" * 60)
-    print(f"Best: {best[0]}/{len(targets)} passed. Written to solution_best.py")
-    print("ALL TESTS PASSED ✅" if best[0] == len(targets) else "Did not fully converge ❌")
+    print(f"Best: {best[0]}/{len(targets)} passed. Written to solution_best_v2.py")
+    print("ALL TESTS PASSED" if best[0] == len(targets) else "Did not fully converge")
 
 
 if __name__ == "__main__":

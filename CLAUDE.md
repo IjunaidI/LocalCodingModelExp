@@ -1,0 +1,118 @@
+# 10-rule spec — Qwen2.5-Coder-3B handoff
+
+Context for Claude Code. This repo makes the Qwen2.5-Coder-3B model emit correct code
+for the 10-rule pricing spec from Ansar Muhammad's SLM experiment.
+
+The user-facing overview lives in [`README.md`](README.md); the full narrative is in
+[`docs/slm-coding-experiment.md`](docs/slm-coding-experiment.md). This file is the
+working handoff for the v2 deliverable.
+
+## Repository layout
+```
+experiments/5-rule/            Minimal 5-rule spec — 3B passes 12/12, first try.
+experiments/10-rule-original/  Original True/False 10-rule baseline — trips the model.
+experiments/10-rule-v2/        ★ The deliverable — same 10 rules re-dialected → 12/12.
+experiments/sweet-spot/        5-level spec ladder — locates the dialect break (L2→L3).
+docs/                          Writeup.
+finetune-with-mlx/             Sibling subproject (LoRA fine-tuning).
+unit-test-11-mar-26/           Sibling subproject (procurement-reader tests).
+model_cache/                   Shared model cache (gitignored; symlinked into experiments).
+```
+Each `experiments/*` folder is self-contained and independently runnable, with its own
+`README.md`.
+
+## The task (from engineering director)
+Get `Qwen2.5-Coder-3B-Instruct-4bit` (via Apple MLX) to generate a
+`process_calculations(csv_path)` that passes **12/12** on the 10-rule pricing &
+commission spec. Model is fixed — use the **Coder** variant, not general Qwen,
+and do not swap in another model. The lever is the SPEC, not the model.
+
+Source article: https://www.linkedin.com/pulse/coding-small-language-models-hosted-your-local-ansar-bbbxf/
+Source repo:    https://github.com/ansarmuhammad/mlx (branch: mlx)
+
+## Why the 3B fails on the original 10-rule spec (diagnosed, reproduced)
+Running the article's harness reproduces the 7B's best attempt at **1/12**, every
+row 2–5% off. Two root-cause bugs, both linguistic, not capability:
+
+1. **Rule 4, the volume tier.** Spec says `<100 → 0%`, `<1000 → 5%`, `≥1000 → 10%`.
+   The model collapses the three-way conditional to
+   `0.05 if v<100 else (0.1 if v<1000 else 0.1)` — wrong in two of three branches.
+2. **Rule 10, the boolean.** The `tax verified` cell is the *string* `"False"`,
+   which is truthy in Python, so `not row["tax verified"]` skips withholding
+   exactly when it should apply.
+
+## The fix (the deliverable)
+`experiments/10-rule-v2/spec_simple_v2.md` re-expresses the SAME ten rules in the
+model's dialect:
+- Rule 4 decomposed into two independent single-condition adds
+  (`if v>=100: +0.05`, `if v>=1000: +0.05`) with an explicit "no elif".
+- `tax verified` expressed as `yes`/`no` text in both spec AND data.
+- Every percentage given as a bare decimal; rates + category multiplier as dict lookups.
+
+The arithmetic is bit-identical to the original: the yes/no dataset's targets match the
+True/False targets with max abs diff = 0.0. Same problem, phrased so the model can't trip.
+
+## Files (in `experiments/10-rule-v2/`)
+- `spec_simple_v2.md`        — the rewritten spec (the actual deliverable)
+- `solve_simple_v2.py`       — MLX harness: generate → score → repair loop (RUN THIS)
+- `test-cases-v2.csv`        — 12-row dataset (yes/no flag), targets baked in
+- `reference_simple_v2.py`   — ground truth; regenerates the dataset, self-checks 12/12
+- `model_solution_v2.py`     — a passing reference solution (proves the spec is sufficient)
+- `prove_v2.py`              — offline scorer, NO MLX needed (check any solution)
+- `buggy_solution_original.py` — the article's failing output (1/12), for before/after
+- `solution_best_v2.py`      — the model's actual 12/12 output
+
+## Environment (Apple Silicon only — MLX requires a Mac)
+Validated with system **Python 3.9**, which pins the stack to `mlx-lm 0.29.1`
+(newer `mlx-lm` needs Python ≥ 3.10).
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install mlx-lm
+```
+
+## How to run
+```bash
+# Live generation → score → writes solution_best_v2.py
+.venv/bin/python experiments/10-rule-v2/solve_simple_v2.py
+
+# Offline check of any candidate (works anywhere, no model needed)
+.venv/bin/python experiments/10-rule-v2/prove_v2.py solution_best_v2.py
+```
+First run downloads `mlx-community/Qwen2.5-Coder-3B-Instruct-4bit` (~1.8 GB) into the
+shared `./model_cache`.
+
+## Status — validated end-to-end
+`solve_simple_v2.py` prints `PASSED 12/12` and writes `solution_best_v2.py`, on
+iteration 1 (greedy). Confirmed on Apple Silicon: the live 3B run scored 12/12 with no
+repairs, and the model's output re-scores 12/12 via `prove_v2.py`. Also verified offline:
+ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy baseline
+1/12.
+
+## If you want to extend
+- Benchmark alternates: the harness is model-agnostic — change `MODEL` at the top of
+  `experiments/10-rule-v2/solve_simple_v2.py` and re-run against this same spec + dataset
+  for a clean apples-to-apples read. (Task says keep Coder-3B, but this is the clean way
+  to test.)
+- Improve the repair loop: it currently feeds a numeric diff, which can't localize a bug.
+  Feeding per-rule intermediate values would help — a separate lever from the spec.
+- Complexity sweet spot — DONE, see `experiments/sweet-spot/`. An 8-spec ladder (same 10
+  rules, only the spec dialect varies) locates the break at the **L2 → L3 boundary**:
+  declarative prose is fine, but removing the literal `copy-these-exactly` lookup tables
+  is the cliff. The failing rungs don't fail on the tier/boolean traps (the model handles
+  those in prose) — they fail to assemble the 3-step commission chain. Controls L6–L8
+  (tables kept, traps re-armed) all reach 12/12, proving the tables — not the traps — are
+  load-bearing. Two methodology findings baked in: single greedy is a knife-edge (a
+  one-line title change flipped L1 from 12/12 to 0/12 — evaluate by sampling), and the
+  instruction wrapper's wording ("strip spaces", "never crash") can dominate results, so
+  it's now precise and constant. Metrics: `run_ladder.py --samples N` (best-of-N staircase)
+  or `--repair` (iterations to converge). Offline re-score with `prove_ladder.py`.
+- Rescue attempt — DONE. `run_ladder.py --repair-rules` is a white-box loop: a reference
+  (`reference_intermediates`) computes every pipeline intermediate and the loop tells the
+  model the FIRST step that diverges ("`commission` = 0.0, should be 3206.25"). At the
+  default repair temp (0.6) it lifts partial scores but converges 0/3 (paths oscillate —
+  fixing one step regresses another). At `--repair-temp 0.3` the conservative edits stick:
+  **L5 converges to 12/12 in one repair iter** (saved `outputs/level_5_repaired.py`), L4
+  climbs to 8/12, but L3 still resists (best 7–8). So white-box repair is a real booster
+  (rescues the boolean rung) but not a guarantee for a fully de-scaffolded spec; the durable
+  lever remains the spec (put the table back / spec-repair). See `outputs/results_repair_rules.md`.
+  Untried on L3: more iterations/trajectories, or instrument-once-then-drop.
