@@ -38,9 +38,10 @@ def spec_body(n):
 
 def load_results():
     r = {x["level"]: x for x in json.loads((SS / "outputs" / "results.json").read_text())}
+    g = {x["level"]: x for x in json.loads((SS / "outputs" / "results_greedy.json").read_text())}
     t06 = {x["level"]: x for x in json.loads((SS / "outputs" / "results_repair_rules_t06.json").read_text())}
     t03 = {x["level"]: x for x in json.loads((SS / "outputs" / "results_repair_rules_t03.json").read_text())}
-    return r, t06, t03
+    return r, g, t06, t03
 
 
 def esc(s):
@@ -57,6 +58,22 @@ def specs_figure():
             f'<pre>{esc(spec_body(n))}</pre></div>'
         )
     return '<div class="spec-grid">' + "".join(cells) + "</div>"
+
+
+def greedy_table(g):
+    rows = []
+    for n in range(1, 9):
+        d = g[n]
+        score = f"{d['best']}/{d['total']}"
+        ok = d["best"] == d["total"]
+        cls = "ok" if ok else "bad"
+        rows.append(
+            f'<tr class="{cls}"><td>L{n}</td><td class="l">{esc(LEVEL_TITLE[n])}</td>'
+            f'<td>{score}</td><td class="c">{"PASS" if ok else "fail"}</td></tr>'
+        )
+    return ('<table class="tbl"><thead><tr><th>Rung</th><th class="l">Spec dialect</th>'
+            '<th>Greedy score</th><th>Result</th></tr></thead><tbody>'
+            + "".join(rows) + "</tbody></table>")
 
 
 def staircase_table(r):
@@ -97,7 +114,7 @@ def repair_table(t06, t03, r):
 
 
 def build_html():
-    r, t06, t03 = load_results()
+    r, g, t06, t03 = load_results()
 
     css = """
     @page { size: A4; margin: 17mm 16mm 16mm 16mm; }
@@ -212,10 +229,26 @@ same decoding, same scorer). <b>Only the spec file changes</b>, so any change in
 the spec's dialect alone.</p>
 <p>Rungs&nbsp;L1–L5 strip one layer of authoring scaffolding at a time, from the heavily-engineered v2 dialect
 down to the natural original. Rungs&nbsp;L6–L8 are <i>controls</i>: they keep the literal lookup tables but
-re-arm the volume-tier and boolean "traps," to test whether those traps are what actually break the model.
-Each level is scored by <b>best-of-ten</b> sampled attempts at temperature&nbsp;0.4; a rung is "reachable" if
-any of the ten attempts reaches a full 12/12 — the meaningful capability threshold for a model this
-single-shot-noisy.</p>
+re-arm the volume-tier and boolean "traps," to test whether those traps are what actually break the model.</p>
+
+<h3>Greedy first: the deterministic result</h3>
+<p>We score each spec two ways. The simplest is to run it once with <b>greedy</b> decoding
+(temperature&nbsp;0), which always takes the single most-likely next token — so the <i>same prompt yields the
+identical program every time</i>, giving one reproducible score per spec. The prescriptive spec (<b>L1</b>)
+passes a perfect <b>12/12</b> this way, reproducing the v2 deliverable's headline; every less-scaffolded rung
+fails a single greedy shot.</p>
+{greedy_table(g)}
+<div class="cap">Table&nbsp;1 · Greedy (deterministic) — one temperature-0 attempt per spec. The prescriptive
+anchor L1 passes; the rest fall short in a single deterministic shot (L5 reaches 4/12, the others 0).</div>
+
+<h3>Why one shot isn't enough</h3>
+<p>A greedy shot is a knife-edge: it carries whatever bug the single most-likely completion happens to have,
+and a trivial rewording can flip it — a one-line change to a spec's <i>title</i> once flipped L1 from 12/12
+to 0/12. To read a spec's real quality we therefore <b>sample</b>: at temperature&nbsp;0.4 the same prompt
+produces <i>different</i> code on each run, so we ask each spec ten times and record the <b>best of the ten</b>
+(can it reach 12/12 at all? — "reachable") and the <b>pass-rate</b> (how many of the ten were fully correct).
+This sampled view — not the brittle single greedy shot — is what the rest of the paper uses.</p>
+
 <p class="cap">Figure&nbsp;1 (next page) shows all eight specs as the model sees them, scaled to a single page.
 The prose after it walks through each rung.</p>
 
@@ -246,9 +279,9 @@ Already past the cliff: <b>best 3/12.</b></li>
 </ul>
 
 {staircase_table(r)}
-<div class="cap">Table&nbsp;1 · Best-of-ten per rung. Pass-rate is how many of ten attempts hit a full 12/12;
-"reachable" means at least one did. Tables present (L1, L2, L6, L7, L8) ⇒ reachable; tables removed
-(L3, L4, L5) ⇒ not.</div>
+<div class="cap">Table&nbsp;2 · Best-of-ten (sampled, temperature 0.4) per rung. Pass-rate is how many of ten
+attempts hit a full 12/12; "reachable" means at least one did. Tables present (L1, L2, L6, L7, L8) ⇒
+reachable; tables removed (L3, L4, L5) ⇒ not.</div>
 
 <h2>4&nbsp;&nbsp;What the ladder shows — a summary</h2>
 <p>The break is the <b>L2&nbsp;→&nbsp;L3 boundary</b>, and it is sharper than the original two-trap story.
@@ -294,7 +327,7 @@ regresses another, and nothing converges. <b>Dropping the repair temperature to 
 conservative enough to stick.</p>
 
 {repair_table(t06, t03, r)}
-<div class="cap">Table&nbsp;2 · White-box repair on the failing rungs. Cell shows best score and, in parentheses,
+<div class="cap">Table&nbsp;3 · White-box repair on the failing rungs. Cell shows best score and, in parentheses,
 trajectories (of three) that reached a full 12/12. At temperature 0.3 the boolean rung <b>L5 converges to
 12/12 in a single repair iteration</b> (path <code>[4,&nbsp;12]</code>); L4 climbs to 8/12; L3 still resists.</div>
 
