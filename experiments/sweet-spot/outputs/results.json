@@ -8,39 +8,27 @@
     "total": 12,
     "best": 12,
     "samples": 10,
-    "perfect": 3,
+    "perfect": 5,
     "scores": [
-      0,
-      0,
-      8,
       12,
       12,
-      0,
-      8,
-      8,
       12,
-      0
+      10,
+      10,
+      12,
+      10,
+      10,
+      12,
+      10
     ],
     "reasons": [
       [
-        "ran, wrong numbers (8/12)",
-        3
-      ],
-      [
         "correct",
-        3
+        5
       ],
       [
-        "runtime crash",
-        2
-      ],
-      [
-        "undefined name (forgot a table/import)",
-        1
-      ],
-      [
-        "ran, wrong numbers (0/12)",
-        1
+        "ran, wrong numbers (10/12)",
+        5
       ]
     ]
   },

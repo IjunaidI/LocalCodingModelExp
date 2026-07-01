@@ -5,7 +5,7 @@ L1–L5 strip scaffolding down the ladder; L6–L8 are controls that keep the li
 
 | Level | Spec dialect | Pass-rate | Best | Most common outcome |
 |:-----:|--------------|:---------:|:----:|---------------------|
-| L1 | Prescriptive pseudocode | 3/10 | 12/12 | ran, wrong numbers (8/12)×3; correct×3 |
+| L1 | Prescriptive pseudocode | 5/10 | 12/12 | correct×5; ran, wrong numbers (10/12)×5 |
 | L2 | Declarative spec | 4/10 | 12/12 | correct×4; runtime crash×2 |
 | L3 | Business prose | 0/10 | 4/12 | ran, wrong numbers (0/12)×3; ran, wrong numbers (4/12)×3 |
 | L4 | Natural rules (tier trap) | 0/10 | 3/12 | ran, wrong numbers (3/12)×3; ran, wrong numbers (0/12)×3 |
@@ -16,7 +16,7 @@ L1–L5 strip scaffolding down the ladder; L6–L8 are controls that keep the li
 
 Per-level score distributions (each number is one sampled attempt):
 
-- **L1 Prescriptive pseudocode** — scores `[0, 0, 8, 12, 12, 0, 8, 8, 12, 0]`; ran, wrong numbers (8/12) ×3, correct ×3, runtime crash ×2, undefined name (forgot a table/import) ×1, ran, wrong numbers (0/12) ×1
+- **L1 Prescriptive pseudocode** — scores `[12, 12, 12, 10, 10, 12, 10, 10, 12, 10]`; correct ×5, ran, wrong numbers (10/12) ×5
 - **L2 Declarative spec** — scores `[12, 0, 0, 8, 0, 9, 12, 8, 12, 12]`; correct ×4, runtime crash ×2, ran, wrong numbers (8/12) ×2, ran, wrong numbers (0/12) ×1, ran, wrong numbers (9/12) ×1
 - **L3 Business prose** — scores `[0, 2, 4, 4, 4, 0, 3, 0, 0, 0]`; ran, wrong numbers (0/12) ×3, ran, wrong numbers (4/12) ×3, ran, wrong numbers (2/12) ×1, ran, wrong numbers (3/12) ×1, runtime crash ×1, syntax error ×1
 - **L4 Natural rules (tier trap)** — scores `[3, 0, 0, 3, 0, 0, 1, 0, 3, 0]`; ran, wrong numbers (3/12) ×3, ran, wrong numbers (0/12) ×3, runtime crash ×2, syntax error ×1, ran, wrong numbers (1/12) ×1

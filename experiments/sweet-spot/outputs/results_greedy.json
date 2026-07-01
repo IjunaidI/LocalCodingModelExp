@@ -1,0 +1,162 @@
+[
+  {
+    "mode": "single",
+    "level": 1,
+    "title": "Prescriptive pseudocode",
+    "expect": "pass (anchor)",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 1,
+    "perfect": 1,
+    "scores": [
+      12
+    ],
+    "reasons": [
+      [
+        "correct",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 2,
+    "title": "Declarative spec",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 4,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      4
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 6,
+    "title": "Tables + natural tier (yes/no)",
+    "expect": "control: tier w/ tables",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 7,
+    "title": "Tables + True/False boolean",
+    "expect": "control: boolean w/ tables",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 8,
+    "title": "Tables + tier + True/False",
+    "expect": "control: both w/ tables",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  }
+]
