@@ -1,0 +1,13 @@
+productid,status,volume,season,customer,region,payment type,transaction type,product category,tax verified,Total_receivables
+1,individual,90,winter,strategic,non-EMEA,credit-card,international,luxury,no,86045.0625
+1,individual,900,winter,strategic,non-EMEA,ach/wire,international,groceries,yes,810000.0
+2,corporate,140,autumn,strategic,EMEA,ach/wire,international,groceries,no,158397.12
+1,individual,90,spring,non-strategic,EMEA,ach/wire,domestic,electronics,yes,95760.0
+3,individual,320,spring,non-strategic,non-EMEA,ach/wire,cross-border,electronics,no,558720.0
+3,corporate,1331,winter,non-strategic,non-EMEA,credit-card,cross-border,groceries,yes,2077158.6
+1,individual,954,winter,strategic,non-EMEA,credit-card,domestic,groceries,no,849498.84
+3,individual,129,summer,non-strategic,non-EMEA,ach/wire,domestic,luxury,yes,245100.0
+2,corporate,1629,spring,strategic,EMEA,ach/wire,international,luxury,no,1744463.52
+1,corporate,265,autumn,non-strategic,non-EMEA,ach/wire,cross-border,electronics,yes,226575.0
+3,individual,663,summer,strategic,EMEA,ach/wire,cross-border,groceries,no,1250205.84
+1,individual,62,winter,non-strategic,non-EMEA,credit-card,domestic,electronics,yes,63860.0
