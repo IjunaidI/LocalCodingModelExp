@@ -26,15 +26,15 @@
     "expect": "pass?",
     "dataset": "test-cases-v2.csv",
     "total": 12,
-    "best": 0,
+    "best": 9,
     "samples": 1,
     "perfect": 0,
     "scores": [
-      0
+      9
     ],
     "reasons": [
       [
-        "runtime crash",
+        "ran, wrong numbers (9/12)",
         1
       ]
     ]
@@ -46,15 +46,15 @@
     "expect": "pass?",
     "dataset": "test-cases-v2.csv",
     "total": 12,
-    "best": 0,
+    "best": 3,
     "samples": 1,
     "perfect": 0,
     "scores": [
-      0
+      3
     ],
     "reasons": [
       [
-        "runtime crash",
+        "ran, wrong numbers (3/12)",
         1
       ]
     ]
@@ -66,15 +66,15 @@
     "expect": "likely break",
     "dataset": "test-cases-v2.csv",
     "total": 12,
-    "best": 0,
+    "best": 3,
     "samples": 1,
     "perfect": 0,
     "scores": [
-      0
+      3
     ],
     "reasons": [
       [
-        "runtime crash",
+        "ran, wrong numbers (3/12)",
         1
       ]
     ]
@@ -86,15 +86,15 @@
     "expect": "fail (anchor)",
     "dataset": "test-cases.csv",
     "total": 12,
-    "best": 4,
+    "best": 3,
     "samples": 1,
     "perfect": 0,
     "scores": [
-      4
+      3
     ],
     "reasons": [
       [
-        "ran, wrong numbers (4/12)",
+        "ran, wrong numbers (3/12)",
         1
       ]
     ]
@@ -106,15 +106,15 @@
     "expect": "control: tier w/ tables",
     "dataset": "test-cases-v2.csv",
     "total": 12,
-    "best": 0,
+    "best": 12,
     "samples": 1,
-    "perfect": 0,
+    "perfect": 1,
     "scores": [
-      0
+      12
     ],
     "reasons": [
       [
-        "runtime crash",
+        "correct",
         1
       ]
     ]
@@ -126,15 +126,15 @@
     "expect": "control: boolean w/ tables",
     "dataset": "test-cases.csv",
     "total": 12,
-    "best": 0,
+    "best": 12,
     "samples": 1,
-    "perfect": 0,
+    "perfect": 1,
     "scores": [
-      0
+      12
     ],
     "reasons": [
       [
-        "runtime crash",
+        "correct",
         1
       ]
     ]
@@ -146,15 +146,15 @@
     "expect": "control: both w/ tables",
     "dataset": "test-cases.csv",
     "total": 12,
-    "best": 0,
+    "best": 12,
     "samples": 1,
-    "perfect": 0,
+    "perfect": 1,
     "scores": [
-      0
+      12
     ],
     "reasons": [
       [
-        "runtime crash",
+        "correct",
         1
       ]
     ]

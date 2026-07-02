@@ -8,43 +8,56 @@ def process_calculations(csv_path):
     }
     CATEGORY_MULTIPLIER = {"electronics": 1.2, "groceries": 0.8, "luxury": 1.5}
 
-    def calculate_total_receivables(row):
-        productid = int(row['productid'].strip())
-        status = row['status'].strip().lower()
-        volume = int(row['volume'].strip())
-        season = row['season'].strip().lower()
-        customer = row['customer'].strip().lower()
-        region = row['region'].strip().lower()
-        payment_type = row['payment type'].strip().lower()
-        transaction_type = row['transaction type'].strip().lower()
-        product_category = row['product category'].strip().lower()
-        tax_verified = row['tax verified'].strip().lower()
+    def process_row(row):
+        # Normalize the row
+        row = {key.strip(): value.strip().lower() for key, value in row.items()}
+        
+        # Convert to numbers and handle empty cells
+        row['volume'] = int(row['volume']) if row['volume'] else 0
+        row['productid'] = int(row['productid'])
+        row['status'] = row['status'].lower()
+        row['season'] = row['season'].lower()
+        row['customer'] = row['customer'].lower()
+        row['region'] = row['region'].lower()
+        row['payment type'] = row['payment type'].lower()
+        row['transaction type'] = row['transaction type'].lower()
+        row['product category'] = row['product category'].lower()
+        row['tax verified'] = row['tax verified'].lower()
 
-        base_receivable = volume * PRODUCT_RATES[productid][status]
+        # Calculate the base receivable
+        base_receivable = row['volume'] * PRODUCT_RATES[row['productid']][row['status']]
 
-        spring_rate = 0.05 if season == "spring" else 0.0
-        volume_rate = 0.05 if volume >= 100 else 0.0
-        volume_rate += 0.05 if volume >= 1000 else 0.0
-        strategic_rate = 0.05 if customer == "strategic" else 0.0
+        # Calculate the discount rates
+        spring_rate = 0.05 if row['season'] == 'spring' else 0.0
+        volume_rate = 0.05 * (1 if row['volume'] >= 100 else 0) + 0.05 * (1 if row['volume'] >= 1000 else 0)
+        strategic_rate = 0.05 if row['customer'] == 'strategic' else 0.0
+        total_discount_rate = spring_rate + volume_rate + strategic_rate
 
-        discount_rate = spring_rate + volume_rate + strategic_rate
-        receivable_after_discount = base_receivable * (1 - discount_rate)
+        # Calculate the receivable after discount
+        receivable_after_discount = base_receivable * (1 - total_discount_rate)
 
-        region_loading = 0.10 * receivable_after_discount if region == "emea" else 0.0
-        payment_loading = 0.025 * receivable_after_discount if payment_type == "credit-card" else 0.0
+        # Calculate the region loading
+        region_loading = 0.10 * receivable_after_discount if row['region'] == 'emea' else 0.0
 
-        commission = (region_loading + payment_loading) * CATEGORY_MULTIPLIER[product_category]
+        # Calculate the payment loading
+        payment_loading = 0.025 * receivable_after_discount if row['payment type'] == 'credit-card' else 0.0
 
+        # Calculate the commission
+        commission = (region_loading + payment_loading) * CATEGORY_MULTIPLIER[row['product category']]
+
+        # Calculate the subtotal
         subtotal = receivable_after_discount + commission
-        withholding = 0.03 * subtotal if tax_verified == "no" else 0.0
 
+        # Calculate the withholding
+        withholding = 0.03 * subtotal if row['tax verified'] == 'no' else 0.0
+
+        # Calculate total receivables
         total_receivables = subtotal - withholding
-        return {
-            "total_receivables": total_receivables
-        }
+
+        return {'total_receivables': total_receivables}
 
     with open(csv_path, mode='r', newline='') as file:
         reader = csv.DictReader(file)
-        results = [calculate_total_receivables(row) for row in reader]
+        results = [process_row(row) for row in reader]
 
     return results

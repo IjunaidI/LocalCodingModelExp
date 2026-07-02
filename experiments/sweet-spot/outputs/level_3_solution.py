@@ -1,67 +1,62 @@
 import csv
 
 def process_calculations(csv_path):
-    # Read the CSV file
-    with open(csv_path, mode='r', newline='', encoding='utf-8') as file:
+    with open(csv_path, mode='r', newline='') as file:
         reader = csv.DictReader(file)
-        results = []
-
+        total_receivables = []
+        
         for row in reader:
-            # Convert productid and volume to numbers
+            # Normalize row keys and values
+            row = {key.strip(): value.strip().lower() for key, value in row.items()}
+            
+            # Convert numeric values
+            row['volume'] = int(row['volume']) if row['volume'] else 0
             row['productid'] = int(row['productid'])
-            row['volume'] = int(row['volume'])
-
-            # Calculate the per-unit price based on productid and status
-            if row['productid'] == 1:
-                per_unit_price = 1000 if row['status'] == 'individual' else 900
-            elif row['productid'] == 2:
-                per_unit_price = 1500 if row['status'] == 'individual' else 1200
-            elif row['productid'] == 3:
-                per_unit_price = 2000 if row['status'] == 'individual' else 1700
-            else:
-                raise ValueError(f"Invalid productid: {row['productid']}")
-
-            # Calculate the base receivable
+            
+            # Calculate per-unit price
+            per_unit_price = {
+                1: 1000 if row['status'] == 'individual' else 900,
+                2: 1500 if row['productid'] == 2 else 1200,
+                3: 2000 if row['productid'] == 3 else 1700
+            }[row['productid']]
+            
+            # Calculate base receivable
             base_receivable = row['volume'] * per_unit_price
-
-            # Calculate the discounts
+            
+            # Calculate discounts
             discount = 0
             if row['season'] == 'spring':
                 discount += 0.05
-            if row['volume'] >= 1000:
+            if 100 <= row['volume'] < 1000:
                 discount += 0.05
-            if row['volume'] >= 100:
+            if row['volume'] >= 1000:
                 discount += 0.05
             if row['customer'] == 'strategic':
                 discount += 0.05
-
-            # Apply the combined discount
+            
+            # Apply combined discount
             receivable_after_discount = base_receivable * (1 - discount)
-
-            # Calculate the surcharges
-            surcharge_eu = 0.10 if row['region'] == 'emea' else 0
-            surcharge_cc = 0.025 if row['payment type'] == 'credit-card' else 0
-            total_surcharges = surcharge_eu + surcharge_cc
-
-            # Calculate the commission
-            commission = total_surcharges * {
+            
+            # Calculate surcharges
+            surcharge_emea = 0.10 if row['region'] == 'emea' else 0
+            surcharge_credit_card = 0.025 if row['payment type'] == 'credit-card' else 0
+            
+            # Calculate subtotal
+            subtotal = receivable_after_discount + (surcharge_emea + surcharge_credit_card) * receivable_after_discount
+            
+            # Calculate commission
+            commission = subtotal * {
                 'electronics': 1.2,
                 'groceries': 0.8,
                 'luxury': 1.5
-            }.get(row['product category'], 1.0)
-
-            # Calculate the subtotal
-            subtotal = receivable_after_discount + commission
-
-            # Calculate the withholding
-            withholding = subtotal * 0.03 if row['tax verified'] == 'no' else 0
-
+            }[row['product category']]
+            
+            # Calculate withholding
+            withholding = subtotal * 0.03 if row['tax verified'].lower() == 'no' else 0
+            
             # Calculate total receivables
-            total_receivables = subtotal - withholding
-
-            # Add the result to the list
-            results.append({
-                'total_receivables': total_receivables
+            total_receivables.append({
+                'total_receivables': subtotal - withholding
             })
-
-    return results
+        
+        return total_receivables

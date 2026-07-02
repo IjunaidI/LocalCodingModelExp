@@ -8,9 +8,16 @@
 Write `process_calculations(csv_path)` that reads the CSV and returns one dict per row
 with the key `total_receivables`.
 
+## Reading the CSV
+Normalize every row before applying the rules — strip surrounding spaces from the headers
+and **lower-case every text value** so comparisons work regardless of case. Copy this exactly:
+```
+row = {key.strip(): value.strip().lower() for key, value in row.items()}
+```
+This turns e.g. `EMEA` into `emea` and `non-EMEA` into `non-emea`. Then convert `volume`
+and `productid` to numbers, and treat an empty cell as its stated default.
+
 ## Input columns
-Each row has these columns (header names may have extra surrounding spaces (strip leading/trailing whitespace only, and keep inner spaces like in `payment type`); compare text in lower
-case; convert `volume` and `productid` to numbers; an empty cell means the stated default):
 - `productid` : "1", "2", or "3"
 - `status` : "individual" or "corporate"
 - `volume` : an integer

@@ -8,20 +8,19 @@ PRODUCT_RATES = {
 CATEGORY_MULTIPLIER = {"electronics": 1.2, "groceries": 0.8, "luxury": 1.5}
 
 def process_calculations(csv_path):
-    total_receivables_list = []
-    
-    with open(csv_path, mode='r', newline='', encoding='utf-8') as file:
+    with open(csv_path, mode='r', newline='') as file:
         reader = csv.DictReader(file)
-        
+        rows = []
         for row in reader:
             # Normalize the row
             row = {key.strip(): value.strip().lower() for key, value in row.items()}
             
-            # Convert numeric values
+            # Convert volume and productid to numbers
             row['volume'] = int(row['volume']) if row['volume'] else 0
+            row['productid'] = int(row['productid'])
             
-            # Apply the 10 rules
-            rate = PRODUCT_RATES[int(row['productid'])][row['status']]
+            # Apply rules
+            rate = PRODUCT_RATES[row['productid']][row['status']]
             receivable_before_discount = row['volume'] * rate
             
             spring_rate = 0.05 if row['season'] == 'spring' else 0.0
@@ -41,9 +40,9 @@ def process_calculations(csv_path):
             
             subtotal = receivable_after_discount + commission
             withholding = 0.03 * subtotal if row['tax verified'] == 'no' else 0.0
+            
             total_receivables = subtotal - withholding
             
-            # Add to the list
-            total_receivables_list.append({'total_receivables': total_receivables})
+            rows.append({'total_receivables': total_receivables})
     
-    return total_receivables_list
+    return rows
