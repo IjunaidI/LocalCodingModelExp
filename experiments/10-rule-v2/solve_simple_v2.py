@@ -4,12 +4,14 @@ Iterative generate -> score -> repair loop against the v2 (small-model dialect)
 clean baseline and repairs use temperature so attempts diverge.
 
 Run on Apple Silicon:  python3 solve_simple_v2.py
-Switch model size by editing MODEL.
+Switch model size with --model (e.g. the 7B id below); the solution file is
+suffixed per size so runs never clobber each other.
 """
 
 import os
 import re
 import csv
+import argparse
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -109,12 +111,20 @@ def ask(model, tokenizer, content, sampler):
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Generate + repair against the v2 spec.")
+    ap.add_argument("--model", default=MODEL,
+                    help="any Qwen2.5-Coder Instruct 4-bit id (default: the 3B)")
+    args = ap.parse_args()
+    m = re.search(r"(\d+(?:[._]\d+)?)B", args.model, re.IGNORECASE)
+    suffix = "" if args.model == MODEL else "_" + ((m.group(1).lower() + "b") if m else "alt")
+    out_name = f"solution_best_v2{suffix}.py"
+
     input_cols, rows, targets = load_test_rows()
     inputs_csv = PROJECT_DIR / "inputs_only_v2.csv"
     write_inputs_csv(input_cols, rows, inputs_csv)
     print(f"Loaded {len(rows)} test cases. Target: {TARGET_COL}\n")
-    print(f"Loading {MODEL} ...\n")
-    model, tokenizer = load(MODEL)
+    print(f"Loading {args.model} ...\n")
+    model, tokenizer = load(args.model)
 
     best = (-1, "")
     content = INITIAL_INSTRUCTION
@@ -142,9 +152,9 @@ def main():
     else:
         print(f"\nStopped after {MAX_ITERS} iterations.")
 
-    (PROJECT_DIR / "solution_best_v2.py").write_text(best[1] + "\n")
+    (PROJECT_DIR / out_name).write_text(best[1] + "\n")
     print("\n" + "-" * 60)
-    print(f"Best: {best[0]}/{len(targets)} passed. Written to solution_best_v2.py")
+    print(f"Best: {best[0]}/{len(targets)} passed. Written to {out_name}")
     print("ALL TESTS PASSED" if best[0] == len(targets) else "Did not fully converge")
 
 
