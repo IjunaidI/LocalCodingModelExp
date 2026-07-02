@@ -143,6 +143,119 @@ table back, or a spec-repair loop) rather than out-arguing the model with clever
 Levers left to try on L3: more iterations/trajectories, or a diagnostic pass that instruments
 once then drops the instrumentation for the fix.
 
+## Round 2 — scale (7B), hybrids, and repair 2.0
+
+Round 1 ended with one stubborn cell: L3, the fully de-scaffolded business prose. Round 2
+asks three questions about it. **Does the cliff move with scale?** (run the identical
+ladder on `Qwen2.5-Coder-7B-Instruct-4bit`). **Is missing knowledge the bottleneck?**
+(hybrids that hand the tables back). **Can a better loop out-argue the dialect?**
+(repair 2.0). Everything below re-scores offline via `prove_ladder.py --tag <tag>`.
+
+### 7B: the cliff doesn't move — reachability does
+
+Same 8 rungs, same harness, only `--model` changes
+([`outputs/results_7b-greedy.json`](outputs/results_7b-greedy.json),
+[`results_7b-s10.json`](outputs/results_7b-s10.json)):
+
+| Rung | 3B greedy | 7B greedy | 3B best-of-10 | 7B best-of-10 (pass-rate) |
+|:--:|:--:|:--:|:--:|:--:|
+| L1 | 12/12 | 12/12 | 12/12 | 12/12 (10/10) |
+| L2 | 9/12 | **12/12** | 12/12 | 12/12 (8/10) |
+| L3 | 3/12 | 4/12 | 4/12 ❌ | **12/12** (2/10) |
+| L4 | 3/12 | 4/12 | 3/12 ❌ | **12/12** (1/10) |
+| L5 | 3/12 | 4/12 | 6/12 ❌ | **12/12** (2/10) |
+| L6 | 12/12 | 10/12 | 12/12 | 12/12 (1/10) |
+| L7 | 12/12 | 12/12 | 12/12 | 12/12 (9/10) |
+| L8 | 12/12 | 10/12 | 12/12 | 12/12 (1/10) |
+
+- **Greedy: the cliff is in the same place.** The 7B passes the structured rungs and
+  fails every tables-removed rung at 4/12 — doubling parameters does not buy a first-try
+  pass on business prose. Spec structure (L1/L2/L7 at 8–10/10 pass-rate) is still worth
+  more than 4 billion extra parameters (L3–L5 at 1–2/10).
+- **Sampling: scale buys reachability.** The 7B reaches 12/12 on L3/L4/L5 within 10
+  samples — rungs the 3B *never* reached. The capability is present at 7B; the dialect
+  still makes it a ~1-in-5-to-10 event instead of a habit.
+- **Scale swaps traps.** On the natural-tier controls the 7B gets *stuck at exactly
+  10/12* in 17 of 20 samples (L6+L8), always the two `volume ≥ 1000` rows: it writes
+  `0.05 if volume >= 100 else 0.10 if volume >= 1000 else 0.0` — a misordered chained
+  ternary whose `0.10` branch is unreachable. That is the article's original Rule-4 tier
+  trap resurfacing in the bigger model in a new surface form (the 3B collapsed the
+  bounds; the 7B misorders the ternary). The additive phrasing (L7) stays robust for
+  both sizes.
+
+### Hybrids: the model KNOWS the tables — it can't wield them from prose
+
+Three ways of handing the tables back to the failing rungs
+([`results_extract-s10.json`](outputs/results_extract-s10.json),
+[`results_prefill-s10.json`](outputs/results_prefill-s10.json),
+[`results_xextract.json`](outputs/results_xextract.json)):
+
+| Mode (L3 / L4 / L5, best) | What it does | Result |
+|--|--|--|
+| `--extract` (self-scaffold) | model rebuilds the tables from the prose, then codes with them appended | extraction **correct 100% of the time**, code still fails: 0 / 6 / 9 |
+| `--prefill` | reply is *seeded* so it already starts with the true tables as code | 4 / 4 / 2 — no rescue |
+| `--extract-model 7B` (cross-model) | 7B extracts, 3B codes | extraction perfect, code 4 / 1 / 0 |
+
+Every extraction — both model sizes, every rung, every run — rebuilt
+`PRODUCT_RATES` / `CATEGORY_MULTIPLIER` exactly. **Knowledge was never the bottleneck.**
+With correct tables in hand (its own!), the coder still mis-assembles the same chain:
+it reads "a **10%** surcharge" as `receivable *= 1.10` instead of materializing a
+separate `0.10 * receivable` amount, so the two loading amounts never exist as values
+and the commission has nothing to sum. (A second seam: the extractor writes `"1"`
+string keys, half the coder samples index with `int` — the crash rows in the extract
+column.) What L1/L2/L6–L8 really provide is not the table *values* but the
+**code-shaped decomposition** — bare decimals and named quantities that force each
+step to exist as a variable.
+
+### Repair 2.0: show a 3B its own code and it stops exploring
+
+Round 1's white-box loop (`--repair-rules`, temp 0.3) rescued L5 but regenerated from
+scratch each iteration. Repair 2.0 (`--repair2`) adds four levers: the previous code in
+the prompt + edit-only-the-culprit, a freeze-list of steps verified correct on every row,
+branch-3 candidate selection per iteration, and temperature annealing. The A/B that
+matters ([`results_repair2-anchored.json`](outputs/results_repair2-anchored.json) vs
+[`results_repair2-fresh.json`](outputs/results_repair2-fresh.json), per-iteration logs
+in the run logs):
+
+| Variant | L3 | L4 | L5 |
+|--|:--:|:--:|:--:|
+| anchored (prev code in prompt), 3B | 3/12 flat | 3/12 flat | 3/12 flat |
+| `--fresh` (regenerate from feedback), 3B | 4/12 | 9/12 ↗ | **12/12 ✅ iter 4** |
+| `--fresh` cool-start (0.3→0.15, 8 iters), 3B | 4/12 | 3/12 | 3/12 |
+| `--fresh`, **7B** | **12/12 ✅ iter 5** | **12/12 ✅ iter 2** | **12/12 ✅ iter 5** |
+
+- **Anchoring is the failure mode, cleanly isolated.** In the anchored runs the
+  instrumentation pass *succeeds* (all 13 intermediates exposed, culprit named,
+  freeze-list built) — and then every one of 12 repair candidates per level scores an
+  identical 3/12 at every temperature. Same levers, same feedback; remove the previous
+  code from the prompt and candidate variance explodes (`[12, 2, 0]` in one L5
+  iteration). A 3B shown its own code copies it; forced to regenerate, it explores.
+- **Branch-3 is where the wins come from.** Nearly every scoring iteration picks a
+  single good candidate out of `[x, 0, 0]` — three lottery tickets per iteration
+  instead of one.
+- **At 3B the outcome is a lottery over candidates, not a schedule effect.** We
+  hypothesized the hot anneal phase (0.6→0.4, scores 0–2 everywhere) was wasted budget —
+  the cool-start control (`--anneal 0.3:0.15`, 8 iterations) *refuted* that: L5 did not
+  re-converge and nothing improved. With single trajectories, whether a run converges
+  turns on drawing one good candidate; total candidate volume (branch × iterations ×
+  trajectories) matters, schedule fine-tuning doesn't measurably.
+- **7B + fresh white-box repair closes the board**: converged 12/12 on all three
+  de-scaffolded rungs within 5 iterations
+  ([`results_7b-repair2-fresh.json`](outputs/results_7b-repair2-fresh.json)) — including
+  L3, the cell nothing else cracked. Business prose → correct code, fully on-device.
+
+### Round-2 takeaway
+
+For the 10-rule spec on an entry-level Mac, the working recipes are now, in order of
+cost: **(1)** write the spec in the model's dialect (tables + bare decimals + named
+steps) and a 3B passes greedy, first try; **(2)** keep the business prose but run
+**7B + fresh white-box repair** — converged 12/12 on all three prose rungs in ≤5
+iterations in our runs; **(3)** sampling the 7B reaches 12/12 but at 1–2 in 10
+reliability. What does *not*
+work: handing back the lookup tables (any of three ways — the knowledge was never
+missing), showing a small model its own code during repair (anchoring flat-line), or
+expecting scale alone to fix a first-try dialect failure.
+
 ## Files
 - `specs/level_1.md … level_8.md` — the rungs. L1–L5 strip scaffolding down the ladder;
   L6–L8 are controls (tables kept, traps re-armed). Everything above the first `#` heading
@@ -150,8 +263,12 @@ once then drops the instrumentation for the fix.
   the spec reaches the model**.
 - `run_ladder.py` — **run this.** `--samples N` (single-shot best-of-N, default greedy),
   `--repair` (scalar-diff repair loop), `--repair-rules` (white-box per-step feedback),
-  `--levels 1,4,5`, `--temp`, `--trajectories`, `--max-iters`.
+  `--levels 1,4,5`, `--temp`, `--trajectories`, `--max-iters`. Round-2 additions:
+  `--model` + `--tag` (any Qwen2.5-Coder size, outputs namespaced per tag), `--extract`
+  (+ optional `--extract-model` for the cross-model hybrid), `--prefill`, and `--repair2`
+  with `--fresh` / `--branch` / `--anneal start:end`.
 - `prove_ladder.py` — offline re-scorer for the saved `outputs/`, no MLX needed.
+  `--tag <tag>` re-scores a round-2 run (e.g. `--tag 7b-repair2-fresh`).
 - `test-cases-v2.csv` / `test-cases.csv` — the `yes/no` and `True/False` datasets.
 - `outputs/level_N_solution.py` — each level's best sampled output (saved evidence).
 - `outputs/level_5_repaired.py` — the 12/12 solution the white-box loop produced for L5 (@0.3).
@@ -173,4 +290,21 @@ once then drops the instrumentation for the fix.
 
 # Re-score the saved outputs anywhere, no model needed
 python3 experiments/sweet-spot/prove_ladder.py
+
+# --- Round 2 ---
+# The identical ladder on the 7B (greedy, then best-of-10)
+.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --tag 7b-greedy
+.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --samples 10 --temp 0.4 --tag 7b-s10
+
+# Hybrids on the failing rungs (self-scaffold / prefill / 7B-extracts-3B-codes)
+.venv/bin/python experiments/sweet-spot/run_ladder.py --extract --levels 3,4,5 --tag extract
+.venv/bin/python experiments/sweet-spot/run_ladder.py --prefill --levels 3,4,5 --tag prefill
+.venv/bin/python experiments/sweet-spot/run_ladder.py --extract --extract-model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --levels 3,4,5 --tag xextract
+
+# Repair 2.0 — the winning configuration (fresh regeneration + branch-3 + anneal)
+.venv/bin/python experiments/sweet-spot/run_ladder.py --repair2 --fresh --levels 3,4,5 --max-iters 6 --branch 3 --anneal 0.6:0.2 --trajectories 1 --tag repair2-fresh
+.venv/bin/python experiments/sweet-spot/run_ladder.py --repair2 --fresh --levels 3,4,5 --max-iters 6 --branch 3 --anneal 0.6:0.2 --trajectories 1 --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --tag 7b-repair2-fresh
+
+# Offline re-score of any round-2 run
+python3 experiments/sweet-spot/prove_ladder.py --tag 7b-repair2-fresh 3 4 5
 ```

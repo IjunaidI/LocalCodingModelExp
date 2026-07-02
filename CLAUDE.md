@@ -115,4 +115,20 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   climbs to 8/12, but L3 still resists (best 7–8). So white-box repair is a real booster
   (rescues the boolean rung) but not a guarantee for a fully de-scaffolded spec; the durable
   lever remains the spec (put the table back / spec-repair). See `outputs/results_repair_rules.md`.
-  Untried on L3: more iterations/trajectories, or instrument-once-then-drop.
+- Round 2 (scale / hybrids / repair 2.0) — DONE, 2026-07-02. Full data + narrative in
+  `experiments/sweet-spot/README.md` § "Round 2"; every run re-scores offline with
+  `prove_ladder.py --tag <tag>`. Headlines: (1) **the cliff doesn't move with scale** —
+  7B greedy fails L3–L5 at 4/12 exactly where the 3B does, but best-of-10 makes all three
+  *reachable* (pass-rate 1–2/10); the 7B also re-arms the article's tier trap in a new form
+  (misordered chained ternary → stuck at 10/12 on L6/L8). (2) **Knowledge was never the
+  bottleneck** — `--extract` / `--prefill` / `--extract-model` hand the tables back three
+  ways; extraction is 100% correct on both sizes, yet the coder still reads "10% surcharge"
+  as `*= 1.10` and never materializes the loading amounts (no rescue). (3) **Repair 2.0**
+  (`--repair2`): anchored variant (prev code in prompt) flat-lines — 12 identical 3/12
+  candidates per level, cleanly logged; `--fresh` (regenerate from feedback + branch-3 +
+  anneal) rescues L5 on the 3B and **converges 12/12 on ALL of L3/L4/L5 with the 7B in ≤5
+  iters** — the L3 cell nothing else cracked. Winning recipe:
+  `--repair2 --fresh --branch 3 --anneal 0.6:0.2`. At 3B the outcome is a lottery over
+  candidates (a cool-start control at 0.3:0.15 refuted the "hot phase is wasted"
+  hypothesis — L5 did not re-converge): candidate volume matters, schedule fine-tuning
+  doesn't measurably.
