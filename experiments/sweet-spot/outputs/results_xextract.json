@@ -1,0 +1,71 @@
+[
+  {
+    "mode": "extract",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 4,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      4
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        1
+      ]
+    ],
+    "extractor": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+    "extraction_ok": true,
+    "extraction_note": ""
+  },
+  {
+    "mode": "extract",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 1,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      1
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (1/12)",
+        1
+      ]
+    ],
+    "extractor": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+    "extraction_ok": true,
+    "extraction_note": ""
+  },
+  {
+    "mode": "extract",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        1
+      ]
+    ],
+    "extractor": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+    "extraction_ok": true,
+    "extraction_note": ""
+  }
+]

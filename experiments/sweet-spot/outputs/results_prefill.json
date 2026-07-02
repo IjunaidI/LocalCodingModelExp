@@ -1,0 +1,62 @@
+[
+  {
+    "mode": "prefill",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "prefill",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 3,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      3
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (3/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "prefill",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 1,
+    "perfect": 0,
+    "scores": [
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        1
+      ]
+    ]
+  }
+]

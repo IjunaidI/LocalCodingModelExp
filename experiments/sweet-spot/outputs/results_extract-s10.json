@@ -1,0 +1,126 @@
+[
+  {
+    "mode": "extract",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 0,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "reasons": [
+      [
+        "runtime crash",
+        6
+      ],
+      [
+        "ran, wrong numbers (0/12)",
+        4
+      ]
+    ],
+    "extractor": "self",
+    "extraction_ok": true,
+    "extraction_note": ""
+  },
+  {
+    "mode": "extract",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 6,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        6
+      ],
+      [
+        "runtime crash",
+        3
+      ],
+      [
+        "ran, wrong numbers (6/12)",
+        1
+      ]
+    ],
+    "extractor": "self",
+    "extraction_ok": true,
+    "extraction_note": ""
+  },
+  {
+    "mode": "extract",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 9,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      3,
+      0,
+      9,
+      3
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        4
+      ],
+      [
+        "runtime crash",
+        2
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        2
+      ],
+      [
+        "ran, wrong numbers (2/12)",
+        1
+      ],
+      [
+        "ran, wrong numbers (9/12)",
+        1
+      ]
+    ],
+    "extractor": "self",
+    "extraction_ok": true,
+    "extraction_note": ""
+  }
+]

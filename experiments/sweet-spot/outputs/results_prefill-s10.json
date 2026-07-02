@@ -1,0 +1,125 @@
+[
+  {
+    "mode": "prefill",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 4,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      4,
+      0,
+      3,
+      0,
+      3,
+      0,
+      4,
+      0,
+      4
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        4
+      ],
+      [
+        "ran, wrong numbers (4/12)",
+        3
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        2
+      ],
+      [
+        "load error",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "prefill",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 4,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      4,
+      3,
+      0,
+      0,
+      4,
+      4,
+      0,
+      3,
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        3
+      ],
+      [
+        "ran, wrong numbers (0/12)",
+        3
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        2
+      ],
+      [
+        "runtime crash",
+        1
+      ],
+      [
+        "load error",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "prefill",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 2,
+    "samples": 10,
+    "perfect": 0,
+    "scores": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (0/12)",
+        8
+      ],
+      [
+        "ran, wrong numbers (1/12)",
+        1
+      ],
+      [
+        "ran, wrong numbers (2/12)",
+        1
+      ]
+    ]
+  }
+]
