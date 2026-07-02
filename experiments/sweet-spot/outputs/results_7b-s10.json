@@ -1,0 +1,298 @@
+[
+  {
+    "mode": "single",
+    "level": 1,
+    "title": "Prescriptive pseudocode",
+    "expect": "pass (anchor)",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 10,
+    "scores": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12
+    ],
+    "reasons": [
+      [
+        "correct",
+        10
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 2,
+    "title": "Declarative spec",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 8,
+    "scores": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      3,
+      12,
+      12,
+      12,
+      6
+    ],
+    "reasons": [
+      [
+        "correct",
+        8
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        1
+      ],
+      [
+        "ran, wrong numbers (6/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 2,
+    "scores": [
+      12,
+      12,
+      0,
+      5,
+      5,
+      5,
+      4,
+      4,
+      4,
+      4
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        4
+      ],
+      [
+        "ran, wrong numbers (5/12)",
+        3
+      ],
+      [
+        "correct",
+        2
+      ],
+      [
+        "runtime crash",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 1,
+    "scores": [
+      5,
+      4,
+      5,
+      5,
+      2,
+      4,
+      4,
+      4,
+      3,
+      12
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        4
+      ],
+      [
+        "ran, wrong numbers (5/12)",
+        3
+      ],
+      [
+        "ran, wrong numbers (2/12)",
+        1
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        1
+      ],
+      [
+        "correct",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 2,
+    "scores": [
+      4,
+      12,
+      4,
+      5,
+      4,
+      0,
+      5,
+      4,
+      4,
+      12
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (4/12)",
+        5
+      ],
+      [
+        "correct",
+        2
+      ],
+      [
+        "ran, wrong numbers (5/12)",
+        2
+      ],
+      [
+        "ran, wrong numbers (0/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 6,
+    "title": "Tables + natural tier (yes/no)",
+    "expect": "control: tier w/ tables",
+    "dataset": "test-cases-v2.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 1,
+    "scores": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      12
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (10/12)",
+        9
+      ],
+      [
+        "correct",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 7,
+    "title": "Tables + True/False boolean",
+    "expect": "control: boolean w/ tables",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 9,
+    "scores": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      3,
+      12,
+      12,
+      12,
+      12
+    ],
+    "reasons": [
+      [
+        "correct",
+        9
+      ],
+      [
+        "ran, wrong numbers (3/12)",
+        1
+      ]
+    ]
+  },
+  {
+    "mode": "single",
+    "level": 8,
+    "title": "Tables + tier + True/False",
+    "expect": "control: both w/ tables",
+    "dataset": "test-cases.csv",
+    "total": 12,
+    "best": 12,
+    "samples": 10,
+    "perfect": 1,
+    "scores": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      12,
+      10,
+      5,
+      10
+    ],
+    "reasons": [
+      [
+        "ran, wrong numbers (10/12)",
+        8
+      ],
+      [
+        "correct",
+        1
+      ],
+      [
+        "ran, wrong numbers (5/12)",
+        1
+      ]
+    ]
+  }
+]
