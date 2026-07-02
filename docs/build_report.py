@@ -234,20 +234,23 @@ re-arm the volume-tier and boolean "traps," to test whether those traps are what
 <h3>Greedy first: the deterministic result</h3>
 <p>We score each spec two ways. The simplest is to run it once with <b>greedy</b> decoding
 (temperature&nbsp;0), which always takes the single most-likely next token — so the <i>same prompt yields the
-identical program every time</i>, giving one reproducible score per spec. The prescriptive spec (<b>L1</b>)
-passes a perfect <b>12/12</b> this way, reproducing the v2 deliverable's headline; every less-scaffolded rung
-fails a single greedy shot.</p>
+identical program every time</i>, giving one reproducible score per spec (every spec carries an explicit
+one-line normalization step so letter-case never confounds the reading — see the methodology note in §4).
+Greedy already draws the boundary: <b>every rung that hands over the literal lookup tables passes 12/12</b> (L1, L6, L7, L8), while
+every rung that removes them fails (L3–L5). The one exception is <b>L2</b> — it keeps the tables but phrases
+the volume rule as terse additive prose, which greedy mis-formulates (see §4).</p>
 {greedy_table(g)}
-<div class="cap">Table&nbsp;1 · Greedy (deterministic) — one temperature-0 attempt per spec. The prescriptive
-anchor L1 passes; the rest fall short in a single deterministic shot (L5 reaches 4/12, the others 0).</div>
+<div class="cap">Table&nbsp;1 · Greedy (deterministic) — one temperature-0 attempt per spec. Tables present ⇒
+12/12 (except L2's prose-additive volume rule); tables removed (L3–L5) ⇒ fail. A single deterministic shot
+already reproduces the boundary the sampled view confirms below.</div>
 
-<h3>Why one shot isn't enough</h3>
-<p>A greedy shot is a knife-edge: it carries whatever bug the single most-likely completion happens to have,
-and a trivial rewording can flip it — a one-line change to a spec's <i>title</i> once flipped L1 from 12/12
-to 0/12. To read a spec's real quality we therefore <b>sample</b>: at temperature&nbsp;0.4 the same prompt
-produces <i>different</i> code on each run, so we ask each spec ten times and record the <b>best of the ten</b>
-(can it reach 12/12 at all? — "reachable") and the <b>pass-rate</b> (how many of the ten were fully correct).
-This sampled view — not the brittle single greedy shot — is what the rest of the paper uses.</p>
+<h3>Sampling: measuring reliability</h3>
+<p>A single greedy shot is still a knife-edge — it carries whatever the top completion produces, and a
+trivial rewording can flip it (a one-line change to a spec's <i>title</i> once flipped L1 from 12/12 to 0/12).
+To gauge how <i>reliably</i> a spec works, we also <b>sample</b>: at temperature&nbsp;0.4 the same prompt yields
+<i>different</i> code on each run, so we ask each spec ten times and record the <b>best of the ten</b>
+(reachable?) and the <b>pass-rate</b> (how many of the ten were fully correct). The sampled staircase below
+confirms the same boundary and adds the reliability dimension a single greedy shot cannot show.</p>
 
 <p class="cap">Figure&nbsp;1 (next page) shows all eight specs as the model sees them, scaled to a single page.
 The prose after it walks through each rung.</p>
@@ -270,7 +273,7 @@ more than 4/12.</b> This is the cliff.</li>
 <li><b>L4 — Natural rules.</b> Re-arms the volume tier as natural bands ("under 100 … 100–999 … 1000+").
 Already past the cliff: <b>best 3/12.</b></li>
 <li><b>L5 — Original dialect.</b> Also re-arms the True/False boolean — the article's original phrasing.
-<b>Best 4/12.</b></li>
+<b>Best 6/12</b> (the case fix corrects its region rows, but the commission chain still breaks).</li>
 <li><b>L6 — Tables + natural tier.</b> Control: the L4 tier phrasing, but with the literal tables kept.
 <b>Reachable, 12/12.</b></li>
 <li><b>L7 — Tables + True/False.</b> Control: the L5 boolean, tables kept. <b>Reachable, 12/12.</b></li>
@@ -298,18 +301,28 @@ famous traps.</b> With the tables present, every dialect is reachable (L1, L2, L
 tables removed, none is (L3, L4, L5). The tables are necessary and nearly sufficient; the tier and boolean
 traps are neither necessary nor sufficient — even both together (L8) still pass. Once the model must build
 its own data structures from prose, what collapses is the multi-step <i>commission</i> chain, not the two
-single-line constructs.</div>
+single-line constructs. <b>Greedy decoding draws the same line</b>: every table-keeping rung passes a single
+deterministic shot (L1, L6, L7, L8), and every tables-removed rung fails it.</div>
+<p><b>One nuance — phrasing still affects one-shot reliability.</b> L2 keeps the tables and is reachable when
+sampled (12/12), yet it is the only table-keeping rung to miss on a single greedy shot (9/12): its terse
+additive volume wording leads greedy to a wrong closed form that drops the sub-100 floor
+(<code>0.05·(1 + (v≥1000))</code>). L6, which states the same rule as explicit tier bands, passes greedy on
+the first try. So once the tables are present, whether a rule lands on the <i>first</i> attempt still depends
+on stating each case explicitly — an additive one-liner is reachable but not one-shot-reliable.</p>
 <p><b>Takeaway for a spec author.</b> You may write the ten-rule spec in plain declarative prose — but you
 must (a) hand over the lookup tables verbatim and (b) name every multi-step derived quantity (here, the
 commission) as its own explicit sub-step. Narrating a multi-step formula in one breath is the thing a 3B
 cannot reliably reconstruct.</p>
-<div class="keybox" style="background:#eef4f8;border-color:#b7cede"><b>Two methodology notes.</b> First,
+<div class="keybox" style="background:#eef4f8;border-color:#b7cede"><b>Three methodology notes.</b> First,
 <i>single greedy decoding is a knife-edge</i>: a one-line change to a spec's title flipped L1's deterministic
 output from 12/12 to 0/12, so a small model must be evaluated by sampling, not one greedy roll. Second,
 <i>the instruction wrapper can dominate the result</i>: an ambiguous "strip spaces from headers" made the
 model delete the space inside <code>payment type</code> and crash, and "never crash" induced
 <code>try/except</code> that swallowed the real bug — both were removed so the wrapper is precise and identical
-for every rung.</p></div>
+for every rung. Third, <i>letter-case must be normalized explicitly</i>: the dataset stores <code>region</code>
+as <code>EMEA</code>/<code>non-EMEA</code> in uppercase, so every spec now carries a one-line
+<code>value.strip().lower()</code> normalization; without it the model compared <code>region == "emea"</code>
+against <code>"EMEA"</code> and silently dropped the EMEA loading on those rows.</p></div>
 
 <h2>5&nbsp;&nbsp;Can a repair loop rescue the failing rungs?</h2>
 <p>The repository's standard loop generates code, scores it, and feeds the failure back for another attempt.
