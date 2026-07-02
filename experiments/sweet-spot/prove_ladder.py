@@ -7,6 +7,7 @@ outputs on a machine without Apple Silicon, or to re-check after editing a solut
 
     python3 experiments/sweet-spot/prove_ladder.py            # all saved levels
     python3 experiments/sweet-spot/prove_ladder.py 4 5        # only levels 4 and 5
+    python3 experiments/sweet-spot/prove_ladder.py --tag 7b   # tagged run (level_N_solution_7b.py)
 """
 
 import sys
@@ -82,12 +83,21 @@ def score(code, inputs_csv, targets):
 
 
 def main():
-    wanted = [int(a) for a in sys.argv[1:]] or sorted(LEVEL_DATASET)
+    argv = sys.argv[1:]
+    tag = ""
+    if "--tag" in argv:
+        i = argv.index("--tag")
+        tag = argv[i + 1]
+        argv = argv[:i] + argv[i + 2:]
+    suffix = f"_{tag}" if tag else ""
+    wanted = [int(a) for a in argv] or sorted(LEVEL_DATASET)
+    if tag:
+        print(f"Re-scoring tagged outputs: level_N_solution{suffix}.py")
     print(f"{'Level':<7} {'Spec dialect':<34} {'Score':<8} Result")
     print("-" * 62)
     results = []
     for lvl in wanted:
-        sol = PROJECT_DIR / "outputs" / f"level_{lvl}_solution.py"
+        sol = PROJECT_DIR / "outputs" / f"level_{lvl}_solution{suffix}.py"
         if not sol.exists():
             print(f"L{lvl:<6} {LEVEL_TITLE.get(lvl, '?'):<34} {'--':<8} (no saved output)")
             continue
