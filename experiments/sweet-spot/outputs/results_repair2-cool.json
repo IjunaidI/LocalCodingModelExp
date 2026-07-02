@@ -1,0 +1,92 @@
+[
+  {
+    "mode": "repair2",
+    "level": 3,
+    "title": "Business prose",
+    "expect": "pass?",
+    "total": 12,
+    "trajectories": 1,
+    "max_iters": 8,
+    "branch": 3,
+    "anneal": [
+      0.3,
+      0.15
+    ],
+    "converged": 0,
+    "min_iters": null,
+    "best": 4,
+    "first_try": false,
+    "paths": [
+      [
+        3,
+        3,
+        4,
+        0,
+        3,
+        3,
+        0,
+        2
+      ]
+    ]
+  },
+  {
+    "mode": "repair2",
+    "level": 4,
+    "title": "Natural rules (tier trap)",
+    "expect": "likely break",
+    "total": 12,
+    "trajectories": 1,
+    "max_iters": 8,
+    "branch": 3,
+    "anneal": [
+      0.3,
+      0.15
+    ],
+    "converged": 0,
+    "min_iters": null,
+    "best": 3,
+    "first_try": false,
+    "paths": [
+      [
+        3,
+        3,
+        3,
+        2,
+        0,
+        0,
+        2,
+        0
+      ]
+    ]
+  },
+  {
+    "mode": "repair2",
+    "level": 5,
+    "title": "Original dialect (boolean trap)",
+    "expect": "fail (anchor)",
+    "total": 12,
+    "trajectories": 1,
+    "max_iters": 8,
+    "branch": 3,
+    "anneal": [
+      0.3,
+      0.15
+    ],
+    "converged": 0,
+    "min_iters": null,
+    "best": 3,
+    "first_try": false,
+    "paths": [
+      [
+        3,
+        2,
+        2,
+        0,
+        0,
+        2,
+        1,
+        1
+      ]
+    ]
+  }
+]
