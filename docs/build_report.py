@@ -37,18 +37,18 @@ def spec_body(n):
 
 
 def load_results():
-    def j(name):
-        return {x["level"]: x for x in json.loads((SS / "outputs" / name).read_text())}
+    def j(size, name):
+        return {x["level"]: x for x in json.loads((SS / size / "outputs" / name).read_text())}
     return {
-        # round 1
-        "r": j("results.json"), "g": j("results_greedy.json"),
-        "t06": j("results_repair_rules_t06.json"), "t03": j("results_repair_rules_t03.json"),
+        # 3B — round 1
+        "r": j("3b", "results_s10.json"), "g": j("3b", "results_greedy.json"),
+        "t06": j("3b", "results_repair_rules_t06.json"), "t03": j("3b", "results_repair_rules_t03.json"),
         # round 2
-        "g7": j("results_7b-greedy.json"), "s7": j("results_7b-s10.json"),
-        "ex": j("results_extract-s10.json"), "pf": j("results_prefill-s10.json"),
-        "xx": j("results_xextract.json"),
-        "anch": j("results_repair2-anchored.json"), "fresh": j("results_repair2-fresh.json"),
-        "fresh7": j("results_7b-repair2-fresh.json"), "cool": j("results_repair2-cool.json"),
+        "g7": j("7b", "results_greedy.json"), "s7": j("7b", "results_s10.json"),
+        "ex": j("3b", "results_extract-s10.json"), "pf": j("3b", "results_prefill-s10.json"),
+        "xx": j("3b", "results_xextract.json"),
+        "anch": j("3b", "results_repair2-anchored.json"), "fresh": j("3b", "results_repair2-fresh.json"),
+        "fresh7": j("7b", "results_repair2-fresh.json"), "cool": j("3b", "results_repair2-cool.json"),
     }
 
 

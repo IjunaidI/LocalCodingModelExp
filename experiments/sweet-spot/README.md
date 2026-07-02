@@ -30,7 +30,7 @@ coding scaffold, so it is *not* one of the variables.
 ## Results
 
 Best-of-10 sampled attempts per level, temperature 0.4 (full distributions in
-[`outputs/results.md`](outputs/results.md)):
+[`3b/outputs/results_s10.md`](3b/outputs/results_s10.md)):
 
 | Level | Spec dialect | Pass-rate | Best of 10 | Reachable? |
 |:-----:|--------------|:---------:|:----------:|:----------:|
@@ -117,7 +117,7 @@ should be 3206.25."* (It asks the model to expose those intermediates so they ca
 
 **Result — it helps, and at a low repair temperature it rescues the boolean rung** (3
 trajectories × up to 6 iters; full data + paths in
-[`outputs/results_repair_rules.md`](outputs/results_repair_rules.md)):
+[`3b/outputs/results_repair_rules.md`](3b/outputs/results_repair_rules.md)):
 
 | Level | best-of-10 (no repair) | `--repair-rules` @0.6 | `--repair-rules` @0.3 |
 |:--:|:--:|:--:|:--:|
@@ -129,7 +129,7 @@ The localization works — the model *does* fix the flagged step. At the default
 temperature (0.6) the score paths **oscillate** (`[4, 0, 1, 0, 0, 9]`): fixing one step
 regresses another, so nothing converges. **Dropping the repair temperature to 0.3** makes
 the edits conservative enough to stick: **L5 converges to a full 12/12 in a single repair
-iteration** (path `[4, 12]`, saved as [`outputs/level_5_repaired.py`](outputs/level_5_repaired.py)),
+iteration** (path `[4, 12]`, saved as [`3b/outputs/level_5_repaired.py`](3b/outputs/level_5_repaired.py)),
 and L4 climbs to 8/12. **L3 still resists** — rebuilding the whole commission chain from pure
 `$`/`%` prose is the hardest cell, and conservative edits raise partial correctness but don't
 close it in this budget. (Emitting 12 extra intermediate keys every turn also destabilizes a
@@ -149,13 +149,14 @@ Round 1 ended with one stubborn cell: L3, the fully de-scaffolded business prose
 asks three questions about it. **Does the cliff move with scale?** (run the identical
 ladder on `Qwen2.5-Coder-7B-Instruct-4bit`). **Is missing knowledge the bottleneck?**
 (hybrids that hand the tables back). **Can a better loop out-argue the dialect?**
-(repair 2.0). Everything below re-scores offline via `prove_ladder.py --tag <tag>`.
+(repair 2.0). Everything below re-scores offline via `prove_ladder.py --dir 3b|7b --tag <tag>`;
+per-model result sheets and artifacts live in [`3b/`](3b/README.md) and [`7b/`](7b/README.md).
 
 ### 7B: the cliff doesn't move — reachability does
 
 Same 8 rungs, same harness, only `--model` changes
-([`outputs/results_7b-greedy.json`](outputs/results_7b-greedy.json),
-[`results_7b-s10.json`](outputs/results_7b-s10.json)):
+([`7b/outputs/results_greedy.json`](7b/outputs/results_greedy.json),
+[`7b/outputs/results_s10.json`](7b/outputs/results_s10.json)):
 
 | Rung | 3B greedy | 7B greedy | 3B best-of-10 | 7B best-of-10 (pass-rate) |
 |:--:|:--:|:--:|:--:|:--:|
@@ -186,9 +187,9 @@ Same 8 rungs, same harness, only `--model` changes
 ### Hybrids: the model KNOWS the tables — it can't wield them from prose
 
 Three ways of handing the tables back to the failing rungs
-([`results_extract-s10.json`](outputs/results_extract-s10.json),
-[`results_prefill-s10.json`](outputs/results_prefill-s10.json),
-[`results_xextract.json`](outputs/results_xextract.json)):
+([`results_extract-s10.json`](3b/outputs/results_extract-s10.json),
+[`results_prefill-s10.json`](3b/outputs/results_prefill-s10.json),
+[`results_xextract.json`](3b/outputs/results_xextract.json)):
 
 | Mode (L3 / L4 / L5, best) | What it does | Result |
 |--|--|--|
@@ -213,8 +214,8 @@ Round 1's white-box loop (`--repair-rules`, temp 0.3) rescued L5 but regenerated
 scratch each iteration. Repair 2.0 (`--repair2`) adds four levers: the previous code in
 the prompt + edit-only-the-culprit, a freeze-list of steps verified correct on every row,
 branch-3 candidate selection per iteration, and temperature annealing. The A/B that
-matters ([`results_repair2-anchored.json`](outputs/results_repair2-anchored.json) vs
-[`results_repair2-fresh.json`](outputs/results_repair2-fresh.json), per-iteration logs
+matters ([`results_repair2-anchored.json`](3b/outputs/results_repair2-anchored.json) vs
+[`results_repair2-fresh.json`](3b/outputs/results_repair2-fresh.json), per-iteration logs
 in the run logs):
 
 | Variant | L3 | L4 | L5 |
@@ -241,7 +242,7 @@ in the run logs):
   trajectories) matters, schedule fine-tuning doesn't measurably.
 - **7B + fresh white-box repair closes the board**: converged 12/12 on all three
   de-scaffolded rungs within 5 iterations
-  ([`results_7b-repair2-fresh.json`](outputs/results_7b-repair2-fresh.json)) — including
+  ([`7b/outputs/results_repair2-fresh.json`](7b/outputs/results_repair2-fresh.json)) — including
   L3, the cell nothing else cracked. Business prose → correct code, fully on-device.
 
 ### Round-2 takeaway
@@ -264,17 +265,21 @@ expecting scale alone to fix a first-try dialect failure.
 - `run_ladder.py` — **run this.** `--samples N` (single-shot best-of-N, default greedy),
   `--repair` (scalar-diff repair loop), `--repair-rules` (white-box per-step feedback),
   `--levels 1,4,5`, `--temp`, `--trajectories`, `--max-iters`. Round-2 additions:
-  `--model` + `--tag` (any Qwen2.5-Coder size, outputs namespaced per tag), `--extract`
-  (+ optional `--extract-model` for the cross-model hybrid), `--prefill`, and `--repair2`
-  with `--fresh` / `--branch` / `--anneal start:end`.
-- `prove_ladder.py` — offline re-scorer for the saved `outputs/`, no MLX needed.
-  `--tag <tag>` re-scores a round-2 run (e.g. `--tag 7b-repair2-fresh`).
+  `--model` (any Qwen2.5-Coder size — artifacts are routed automatically into that size's
+  folder), `--tag` (mode suffix, auto-set per mode), `--extract` (+ optional
+  `--extract-model` for the cross-model hybrid), `--prefill`, and `--repair2` with
+  `--fresh` / `--branch` / `--anneal start:end`.
+- **`3b/`** and **`7b/`** — one folder per model size, each with its own result-sheet
+  `README.md` and an `outputs/` holding every saved solution and results table for that
+  size. Same filenames on both sides (`level_N_solution_<tag>.py`,
+  `results_<tag>.{json,md}`), so the two are directly diffable. See
+  [`3b/README.md`](3b/README.md) and [`7b/README.md`](7b/README.md).
+- `prove_ladder.py` — offline re-scorer, no MLX needed. `--dir 3b|7b` picks the model
+  folder, `--tag` the run (defaults re-score the 3B best-of-10 staircase).
 - `test-cases-v2.csv` / `test-cases.csv` — the `yes/no` and `True/False` datasets.
-- `outputs/level_N_solution.py` — each level's best sampled output (saved evidence).
-- `outputs/level_5_repaired.py` — the 12/12 solution the white-box loop produced for L5 (@0.3).
-- `outputs/results.md`, `outputs/results.json` — the best-of-10 staircase (L1–L8).
-- `outputs/results_repair_rules.md` — the white-box repair comparison (temps 0.6 vs 0.3);
-  raw per-run data in `results_repair_rules_t06.json` / `results_repair_rules_t03.json`.
+- `3b/outputs/level_5_repaired.py` — the 12/12 solution the round-1 white-box loop
+  produced for L5 (@0.3); the round-2 repaired winners are
+  `{3b,7b}/outputs/level_N_solution_repair2-fresh.py`.
 - `model_cache` — symlink to the repo-root shared cache (gitignored).
 
 ## Run
@@ -288,23 +293,24 @@ expecting scale alone to fix a first-try dialect failure.
 # White-box repair: per-step intermediate feedback (tries to rescue the failing rungs)
 .venv/bin/python experiments/sweet-spot/run_ladder.py --repair-rules --levels 3,4,5
 
-# Re-score the saved outputs anywhere, no model needed
+# Re-score the saved outputs anywhere, no model needed (defaults: 3B staircase)
 python3 experiments/sweet-spot/prove_ladder.py
 
 # --- Round 2 ---
-# The identical ladder on the 7B (greedy, then best-of-10)
-.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --tag 7b-greedy
-.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --samples 10 --temp 0.4 --tag 7b-s10
+# The identical ladder on the 7B (greedy, then best-of-10). Artifacts route to
+# 7b/outputs/ automatically; tags auto-set to greedy / s10.
+.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit
+.venv/bin/python experiments/sweet-spot/run_ladder.py --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --samples 10 --temp 0.4
 
 # Hybrids on the failing rungs (self-scaffold / prefill / 7B-extracts-3B-codes)
-.venv/bin/python experiments/sweet-spot/run_ladder.py --extract --levels 3,4,5 --tag extract
-.venv/bin/python experiments/sweet-spot/run_ladder.py --prefill --levels 3,4,5 --tag prefill
+.venv/bin/python experiments/sweet-spot/run_ladder.py --extract --levels 3,4,5
+.venv/bin/python experiments/sweet-spot/run_ladder.py --prefill --levels 3,4,5
 .venv/bin/python experiments/sweet-spot/run_ladder.py --extract --extract-model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --levels 3,4,5 --tag xextract
 
 # Repair 2.0 — the winning configuration (fresh regeneration + branch-3 + anneal)
 .venv/bin/python experiments/sweet-spot/run_ladder.py --repair2 --fresh --levels 3,4,5 --max-iters 6 --branch 3 --anneal 0.6:0.2 --trajectories 1 --tag repair2-fresh
-.venv/bin/python experiments/sweet-spot/run_ladder.py --repair2 --fresh --levels 3,4,5 --max-iters 6 --branch 3 --anneal 0.6:0.2 --trajectories 1 --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --tag 7b-repair2-fresh
+.venv/bin/python experiments/sweet-spot/run_ladder.py --repair2 --fresh --levels 3,4,5 --max-iters 6 --branch 3 --anneal 0.6:0.2 --trajectories 1 --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --tag repair2-fresh
 
-# Offline re-score of any round-2 run
-python3 experiments/sweet-spot/prove_ladder.py --tag 7b-repair2-fresh 3 4 5
+# Offline re-score of any run: --dir picks the model size, --tag the run
+python3 experiments/sweet-spot/prove_ladder.py --dir 7b --tag repair2-fresh 3 4 5
 ```

@@ -111,13 +111,17 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   model the FIRST step that diverges ("`commission` = 0.0, should be 3206.25"). At the
   default repair temp (0.6) it lifts partial scores but converges 0/3 (paths oscillate —
   fixing one step regresses another). At `--repair-temp 0.3` the conservative edits stick:
-  **L5 converges to 12/12 in one repair iter** (saved `outputs/level_5_repaired.py`), L4
+  **L5 converges to 12/12 in one repair iter** (saved `3b/outputs/level_5_repaired.py`), L4
   climbs to 8/12, but L3 still resists (best 7–8). So white-box repair is a real booster
   (rescues the boolean rung) but not a guarantee for a fully de-scaffolded spec; the durable
-  lever remains the spec (put the table back / spec-repair). See `outputs/results_repair_rules.md`.
+  lever remains the spec (put the table back / spec-repair). See `3b/outputs/results_repair_rules.md`.
 - Round 2 (scale / hybrids / repair 2.0) — DONE, 2026-07-02. Full data + narrative in
-  `experiments/sweet-spot/README.md` § "Round 2"; every run re-scores offline with
-  `prove_ladder.py --tag <tag>`. Headlines: (1) **the cliff doesn't move with scale** —
+  `experiments/sweet-spot/README.md` § "Round 2"; artifacts are segregated per model size
+  into `experiments/sweet-spot/3b/outputs/` and `7b/outputs/` (same filenames both sides,
+  each folder has its own result-sheet README); every run re-scores offline with
+  `prove_ladder.py --dir 3b|7b --tag <tag>`. The v2 deliverable spec also passes the 7B
+  first-try greedy (`solve_simple_v2.py --model …7B… → solution_best_v2_7b.py`, 12/12).
+  Headlines: (1) **the cliff doesn't move with scale** —
   7B greedy fails L3–L5 at 4/12 exactly where the 3B does, but best-of-10 makes all three
   *reachable* (pass-rate 1–2/10); the 7B also re-arms the article's tier trap in a new form
   (misordered chained ternary → stuck at 10/12 on L6/L8). (2) **Knowledge was never the

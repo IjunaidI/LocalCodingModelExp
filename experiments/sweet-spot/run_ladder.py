@@ -29,8 +29,9 @@ Run on Apple Silicon (from repo root):
     .venv/bin/python experiments/sweet-spot/run_ladder.py --repair --trajectories 3
     .venv/bin/python experiments/sweet-spot/run_ladder.py --levels 1,4,5
 
-Round-2 modes (each writes to outputs/ under its own --tag, so the committed baseline
-artifacts are never clobbered):
+Round-2 modes. Artifacts are routed into a per-model-size folder (3b/outputs/,
+7b/outputs/, ...) chosen from --model, and suffixed with a mode tag (--tag, auto-set
+per mode), so runs at different sizes or modes never clobber each other:
     --extract            two-stage self-scaffold: the model first rebuilds the lookup
                          tables from the spec's own prose, then codes with them appended
     --extract-model M    cross-model hybrid: model M rebuilds the tables, --model codes
@@ -65,9 +66,11 @@ MAX_TOKENS = 2000
 GREEDY_SAMPLER = make_sampler(temp=0.0)
 REPAIR_SAMPLER = make_sampler(temp=0.6, top_p=0.9)
 
-# Suffix for every artifact this run writes (saved solutions, results files). Set from
-# --tag / --model in main() so alternate-model and round-2-mode runs never clobber the
-# committed 3B baseline outputs.
+# Every artifact this run writes (saved solutions, results files) goes into a
+# per-model-size folder — experiments/sweet-spot/3b/outputs/ or 7b/outputs/ — chosen
+# from --model in main(), and carries a mode suffix from --tag. So runs at different
+# sizes or modes never clobber each other.
+OUT_DIR = PROJECT_DIR / "3b" / "outputs"
 OUT_TAG = ""
 
 
@@ -261,13 +264,13 @@ def ask(model, tokenizer, content, sampler):
 def _prep(cfg):
     spec_text = load_spec(PROJECT_DIR / "specs" / cfg["spec"])
     input_cols, rows, targets = load_test_rows(PROJECT_DIR / cfg["dataset"])
-    inputs_csv = PROJECT_DIR / "outputs" / f"_inputs_only_level_{cfg['level']}.csv"
+    inputs_csv = OUT_DIR / f"_inputs_only_level_{cfg['level']}.csv"
     write_inputs_csv(input_cols, rows, inputs_csv)
     return spec_text, inputs_csv, targets
 
 
 def save_best(cfg, code):
-    (PROJECT_DIR / "outputs" / _tagged(f"level_{cfg['level']}_solution", "py")).write_text(code + "\n")
+    (OUT_DIR / _tagged(f"level_{cfg['level']}_solution", "py")).write_text(code + "\n")
 
 
 # ---------------------------------------------------------------- single-shot mode ----
@@ -367,7 +370,7 @@ def run_level_extract(cfg, model, tokenizer, sampler, samples, extraction=None, 
                                       GREEDY_SAMPLER))
         extractor = "self"
     ok, note = check_extraction(extraction)
-    (PROJECT_DIR / "outputs" / _tagged(f"level_{cfg['level']}_extracted", "py")
+    (OUT_DIR / _tagged(f"level_{cfg['level']}_extracted", "py")
      ).write_text(extraction + "\n")
 
     stage2 = (INSTRUCTION + spec_text
@@ -568,7 +571,7 @@ def run_level_repair_rules(cfg, model, tokenizer, max_iters, trajectories, repai
     input_cols, rows, targets = load_test_rows(PROJECT_DIR / cfg["dataset"])
     total = len(targets)
     ref_ints = [reference_intermediates(r) for r in rows]
-    inputs_csv = PROJECT_DIR / "outputs" / f"_inputs_only_level_{cfg['level']}.csv"
+    inputs_csv = OUT_DIR / f"_inputs_only_level_{cfg['level']}.csv"
     write_inputs_csv(input_cols, rows, inputs_csv)
 
     # Iteration 1: greedy, normal output contract (comparable to the other modes).
@@ -711,7 +714,7 @@ def run_level_repair2(cfg, model, tokenizer, max_iters, trajectories, branch, t_
     input_cols, rows, targets = load_test_rows(PROJECT_DIR / cfg["dataset"])
     total = len(targets)
     ref_ints = [reference_intermediates(r) for r in rows]
-    inputs_csv = PROJECT_DIR / "outputs" / f"_inputs_only_level_{cfg['level']}.csv"
+    inputs_csv = OUT_DIR / f"_inputs_only_level_{cfg['level']}.csv"
     write_inputs_csv(input_cols, rows, inputs_csv)
 
     code1 = extract_code(ask(model, tokenizer, INSTRUCTION + spec_text, GREEDY_SAMPLER))
@@ -842,8 +845,8 @@ def write_results_md(results, mode, samples):
             ok = "correct" if r.get("extraction_ok") else f"WRONG — {r.get('extraction_note')}"
             lines.append(f"- **L{r['level']}** (extractor: {r.get('extractor')}): tables {ok}")
     lines.append("")
-    (PROJECT_DIR / "outputs" / _tagged("results", "md")).write_text("\n".join(lines))
-    (PROJECT_DIR / "outputs" / _tagged("results", "json")).write_text(json.dumps(results, indent=2))
+    (OUT_DIR / _tagged("results", "md")).write_text("\n".join(lines))
+    (OUT_DIR / _tagged("results", "json")).write_text(json.dumps(results, indent=2))
 
 
 def main():
@@ -884,14 +887,19 @@ def main():
             "prefill" if args.prefill else "single")
     t_start, t_end = (float(x) for x in args.anneal.split(":"))
 
-    global OUT_TAG
+    # Route every artifact into a per-model-size folder (3b/outputs, 7b/outputs, ...),
+    # and give every run an explicit mode tag so nothing is ever ambiguous on disk.
+    global OUT_DIR, OUT_TAG
+    m = re.search(r"(\d+(?:[._]\d+)?)B", args.model, re.IGNORECASE)
+    size = (m.group(1).lower().replace("_", ".") + "b") if m else "alt"
+    OUT_DIR = PROJECT_DIR / size / "outputs"
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     OUT_TAG = args.tag
-    if not OUT_TAG and mode in ("extract", "prefill", "repair2"):
-        OUT_TAG = mode
-    if not args.tag and args.model != MODEL:
-        m = re.search(r"(\d+(?:[._]\d+)?)B", args.model, re.IGNORECASE)
-        size = (m.group(1).lower() + "b") if m else "alt"
-        OUT_TAG = f"{size}-{OUT_TAG}" if OUT_TAG else size
+    if not OUT_TAG:
+        if mode in ("extract", "prefill", "repair2"):
+            OUT_TAG = mode
+        elif mode == "single":
+            OUT_TAG = "greedy" if args.samples == 1 else f"s{args.samples}"
     wanted = {int(x) for x in args.levels.split(",") if x.strip()} if args.levels else None
     todo = [c for c in LEVELS if wanted is None or c["level"] in wanted]
 
@@ -916,8 +924,8 @@ def main():
         print("Mode: greedy (temperature 0), 1 attempt per level.\n")
     else:
         print(f"Mode: {args.samples} attempts per level at temperature {args.temp}.\n")
-    if OUT_TAG:
-        print(f"Output tag: _{OUT_TAG}\n")
+    print(f"Outputs: {OUT_DIR.relative_to(PROJECT_DIR)}/"
+          + (f" (tag _{OUT_TAG})" if OUT_TAG else "") + "\n")
 
     extractions = {}
     if mode == "extract" and args.extract_model:
@@ -1017,8 +1025,9 @@ def main():
         prev = results[results.index(first_fail) - 1]
         print(f"  SWEET SPOT: holds through L{prev['level']} ({prev['title']}), "
               f"breaks at L{first_fail['level']} ({first_fail['title']}).")
-    print(f"\nResults written to outputs/{_tagged('results', 'md')} "
-          f"and outputs/{_tagged('results', 'json')}")
+    rel = OUT_DIR.relative_to(PROJECT_DIR)
+    print(f"\nResults written to {rel}/{_tagged('results', 'md')} "
+          f"and {rel}/{_tagged('results', 'json')}")
 
 
 if __name__ == "__main__":

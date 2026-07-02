@@ -5,9 +5,13 @@ Re-scores each saved outputs/level_N_solution.py against its level's dataset and
 the same PASS/FAIL table run_ladder.py produced live. Use this to verify the committed
 outputs on a machine without Apple Silicon, or to re-check after editing a solution.
 
-    python3 experiments/sweet-spot/prove_ladder.py            # all saved levels
-    python3 experiments/sweet-spot/prove_ladder.py 4 5        # only levels 4 and 5
-    python3 experiments/sweet-spot/prove_ladder.py --tag 7b   # tagged run (level_N_solution_7b.py)
+Artifacts live in per-model-size folders (3b/outputs/, 7b/outputs/) with a mode tag
+in every filename. Defaults re-score the 3B best-of-10 staircase.
+
+    python3 experiments/sweet-spot/prove_ladder.py                          # 3B, tag s10
+    python3 experiments/sweet-spot/prove_ladder.py 4 5                      # subset of levels
+    python3 experiments/sweet-spot/prove_ladder.py --dir 7b --tag greedy    # 7B greedy run
+    python3 experiments/sweet-spot/prove_ladder.py --dir 7b --tag repair2-fresh 3 4 5
 """
 
 import sys
@@ -84,25 +88,29 @@ def score(code, inputs_csv, targets):
 
 def main():
     argv = sys.argv[1:]
-    tag = ""
-    if "--tag" in argv:
-        i = argv.index("--tag")
-        tag = argv[i + 1]
-        argv = argv[:i] + argv[i + 2:]
+    tag, dirname = "s10", "3b"
+    for flag in ("--tag", "--dir"):
+        if flag in argv:
+            i = argv.index(flag)
+            val = argv[i + 1]
+            argv = argv[:i] + argv[i + 2:]
+            if flag == "--tag":
+                tag = val
+            else:
+                dirname = val
     suffix = f"_{tag}" if tag else ""
     wanted = [int(a) for a in argv] or sorted(LEVEL_DATASET)
-    if tag:
-        print(f"Re-scoring tagged outputs: level_N_solution{suffix}.py")
+    print(f"Re-scoring {dirname}/outputs/level_N_solution{suffix}.py")
     print(f"{'Level':<7} {'Spec dialect':<34} {'Score':<8} Result")
     print("-" * 62)
     results = []
     for lvl in wanted:
-        sol = PROJECT_DIR / "outputs" / f"level_{lvl}_solution{suffix}.py"
+        sol = PROJECT_DIR / dirname / "outputs" / f"level_{lvl}_solution{suffix}.py"
         if not sol.exists():
             print(f"L{lvl:<6} {LEVEL_TITLE.get(lvl, '?'):<34} {'--':<8} (no saved output)")
             continue
         input_cols, rows, targets = load_targets(PROJECT_DIR / LEVEL_DATASET[lvl])
-        inputs_csv = PROJECT_DIR / "outputs" / f"_inputs_only_level_{lvl}.csv"
+        inputs_csv = PROJECT_DIR / dirname / "outputs" / f"_inputs_only_level_{lvl}.csv"
         write_inputs_csv(input_cols, rows, inputs_csv)
         passed, err = score(sol.read_text(), inputs_csv, targets)
         tag = "PASS" if passed == len(targets) else "FAIL"

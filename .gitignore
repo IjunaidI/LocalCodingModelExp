@@ -30,7 +30,7 @@ _tmp_inputs*.csv
 _dbg*.csv
 
 # --- Sweet-spot experiment: keep specs, solutions and results.{md,json}; drop run logs ---
-experiments/sweet-spot/outputs/run_*.log
+experiments/sweet-spot/*/outputs/run_*.log
 
 # --- Subproject: finetune-with-mlx (keep source, drop heavy/regenerable outputs) ---
 finetune-with-mlx/adapters/
