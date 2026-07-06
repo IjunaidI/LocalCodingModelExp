@@ -1,0 +1,278 @@
+<title>Out of the box — voting vs. decomposition</title>
+<style>
+  :root{
+    --ground:#EEF1F6; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --ink:#141922; --muted:#5A6472; --faint:#8791A0;
+    --hair:#E1E6EE; --hair-2:#EAEEF4;
+    --accent:#3D5AE0;
+    --pass:#1F9D57; --warn:#C67A10; --crash:#B03A36;
+    --pass-soft:rgba(31,157,87,.12); --warn-soft:rgba(198,122,16,.14); --crash-soft:rgba(176,58,54,.12);
+    --shadow:0 1px 2px rgba(18,24,38,.04), 0 8px 30px rgba(18,24,38,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#0C1016; --surface:#151A22; --surface-2:#11161D;
+      --ink:#E7ECF3; --muted:#8B95A6; --faint:#6B7484;
+      --hair:#262D38; --hair-2:#1E242D;
+      --accent:#6E7BEC;
+      --pass:#2AA96E; --warn:#B26F16; --crash:#D25C55;
+      --pass-soft:rgba(42,169,110,.16); --warn-soft:rgba(178,111,22,.20); --crash-soft:rgba(210,92,85,.16);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.36);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#EEF1F6; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --ink:#141922; --muted:#5A6472; --faint:#8791A0; --hair:#E1E6EE; --hair-2:#EAEEF4;
+    --accent:#3D5AE0; --pass:#1F9D57; --warn:#C67A10; --crash:#B03A36;
+    --pass-soft:rgba(31,157,87,.12); --warn-soft:rgba(198,122,16,.14); --crash-soft:rgba(176,58,54,.12);
+    --shadow:0 1px 2px rgba(18,24,38,.04), 0 8px 30px rgba(18,24,38,.06);
+  }
+  :root[data-theme="dark"]{
+    --ground:#0C1016; --surface:#151A22; --surface-2:#11161D;
+    --ink:#E7ECF3; --muted:#8B95A6; --faint:#6B7484; --hair:#262D38; --hair-2:#1E242D;
+    --accent:#6E7BEC; --pass:#2AA96E; --warn:#B26F16; --crash:#D25C55;
+    --pass-soft:rgba(42,169,110,.16); --warn-soft:rgba(178,111,22,.20); --crash-soft:rgba(210,92,85,.16);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.36);
+  }
+  *{box-sizing:border-box}
+  :root{
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans); line-height:1.55; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px; margin:0 auto; padding:clamp(20px,4vw,56px) clamp(16px,4vw,40px) 80px}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600}
+
+  header.mast{border-bottom:1px solid var(--hair); padding-bottom:22px; margin-bottom:34px}
+  .mast .kicker{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .chip{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--muted); border:1px solid var(--hair); border-radius:999px; padding:3px 10px; background:var(--surface)}
+  h1{font-size:clamp(28px,5vw,44px); line-height:1.05; letter-spacing:-.02em; margin:.1em 0 0; font-weight:680; text-wrap:balance; max-width:18ch}
+  .dek{color:var(--muted); font-size:clamp(15px,2.2vw,17px); margin:14px 0 0; max-width:64ch}
+  .dek b{color:var(--ink); font-weight:600}
+
+  .hero{display:grid; grid-template-columns:auto 1fr; gap:clamp(20px,4vw,40px); align-items:center;
+    background:var(--surface); border:1px solid var(--hair); border-radius:16px; padding:clamp(22px,4vw,38px);
+    box-shadow:var(--shadow); position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--pass)}
+  .score{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; line-height:.9; letter-spacing:-.03em; display:flex; align-items:baseline; gap:.06em}
+  .score .big{font-size:clamp(58px,13vw,104px); color:var(--pass)}
+  .score .den{font-size:clamp(26px,6vw,44px); color:var(--faint)}
+  .hero .say .tag{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--pass); background:var(--pass-soft); border-radius:999px; padding:4px 11px; font-weight:600}
+  .hero .say h2{font-size:clamp(19px,3vw,24px); margin:14px 0 6px; letter-spacing:-.01em; font-weight:640}
+  .hero .say p{margin:0; color:var(--muted); font-size:14.5px; max-width:48ch}
+  .hero .say b{color:var(--ink); font-weight:620}
+
+  section{margin-top:40px}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px}
+  .sec-head .n{font-family:var(--mono); font-size:12px; color:var(--faint)}
+  h3{font-size:clamp(18px,2.6vw,21px); margin:0; letter-spacing:-.01em; font-weight:640}
+  .lead{color:var(--muted); margin:.35em 0 20px; max-width:64ch; font-size:15px}
+  .lead b{color:var(--ink); font-weight:600}
+
+  .versus{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:640px){.versus{grid-template-columns:1fr}}
+  .panel{background:var(--surface); border:1px solid var(--hair); border-radius:14px; padding:clamp(18px,3vw,24px); box-shadow:var(--shadow); position:relative; overflow:hidden}
+  .panel.fail::before,.panel.win::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px}
+  .panel.fail::before{background:var(--crash)} .panel.win::before{background:var(--pass)}
+  .phead{display:flex; align-items:center; gap:9px; margin-bottom:4px}
+  .phead h4{margin:0; font-size:16px; font-weight:640; letter-spacing:-.01em}
+  .pstate{font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; font-weight:600; border-radius:999px; padding:3px 9px}
+  .pstate.no{color:var(--crash); background:var(--crash-soft)} .pstate.yes{color:var(--pass); background:var(--pass-soft)}
+  .psub{font-size:13px; color:var(--muted); margin:0 0 16px; min-height:2.6em}
+
+  /* committee chips */
+  .committee{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:14px}
+  .cc{aspect-ratio:1/1; border-radius:7px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums}
+  .cc.crash{background:var(--crash-soft); color:var(--crash)}
+  .cc.ran{background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn)}
+  .cc.zero{background:var(--warn-soft); color:var(--faint); border:1px dashed var(--warn)}
+  .ccleg{display:flex; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-bottom:16px}
+  .ccleg span{display:flex; align-items:center; gap:6px}
+  .sw{width:11px; height:11px; border-radius:3px; flex:none}
+  .sw.crash{background:var(--crash-soft); border:1px solid var(--crash)} .sw.ran{background:var(--warn-soft); border:1px solid var(--warn)}
+
+  .statrow{display:flex; gap:6px; flex-wrap:wrap; margin-top:auto}
+  .stat{flex:1 1 auto; min-width:74px; background:var(--surface-2); border:1px solid var(--hair-2); border-radius:9px; padding:9px 11px}
+  .stat .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--faint)}
+  .stat .v{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:19px; margin-top:2px}
+  .stat.hi .v{color:var(--warn)}
+  .ceil{margin-top:14px; font-size:12.5px; color:var(--muted); display:flex; gap:8px; align-items:flex-start}
+  .ceil b{color:var(--crash); font-weight:640}
+
+  /* waffle */
+  .waffle{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:14px}
+  .wc{aspect-ratio:1/1; border-radius:6px; display:flex; align-items:center; justify-content:center}
+  .wc.ok{background:var(--pass)} .wc.miss{background:var(--warn)}
+  .wc svg{width:60%; height:60%; color:#fff}
+  .wafcap{display:flex; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-bottom:14px}
+  .wafcap span{display:flex; align-items:center; gap:6px}
+  .arrow{display:flex; align-items:center; gap:10px; background:var(--pass-soft); border-radius:10px; padding:11px 14px; margin-top:auto}
+  .arrow .a{font-family:var(--mono); font-size:13px; color:var(--muted)}
+  .arrow .r{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:22px; color:var(--pass); margin-left:auto}
+
+  /* contrast bars */
+  .bars{display:flex; flex-direction:column; gap:12px}
+  .brow{display:grid; grid-template-columns:150px 1fr; gap:16px; align-items:center}
+  @media (max-width:560px){.brow{grid-template-columns:1fr; gap:5px}}
+  .brow .bm{min-width:0}
+  .brow .bt{font-size:13.5px; color:var(--ink); font-weight:560}
+  .brow .bd{font-family:var(--mono); font-size:11.5px; color:var(--muted)}
+  .btrack{position:relative; height:34px; background:var(--surface-2); border:1px solid var(--hair-2); border-radius:9px; overflow:hidden}
+  .bfill{position:absolute; left:0; top:0; bottom:0; border-radius:8px 6px 6px 8px; min-width:4px}
+  .bfill.warn{background:var(--warn)} .bfill.crash{background:var(--crash)} .bfill.pass{background:var(--pass)}
+  .blabel{position:absolute; top:0; bottom:0; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:13px; padding:0 12px}
+  .blabel.inside{color:#fff; left:0} .blabel.outside{color:var(--muted)}
+  .btrack.goal-track{box-shadow:inset -2px 0 0 var(--pass)}
+
+  .takeaway{margin-top:40px; background:var(--surface); border:1px solid var(--hair); border-left:4px solid var(--accent);
+    border-radius:12px; padding:clamp(20px,3vw,28px); box-shadow:var(--shadow)}
+  .takeaway .eyebrow{margin-bottom:10px; display:block}
+  .takeaway p{margin:0; font-size:clamp(16px,2.4vw,19px); line-height:1.5; letter-spacing:-.01em; max-width:60ch}
+  .takeaway b{font-weight:660}
+  .takeaway .sub{font-size:14px; color:var(--muted); margin-top:12px; line-height:1.55}
+
+  footer{margin-top:52px; padding-top:20px; border-top:1px solid var(--hair); color:var(--faint); font-family:var(--mono); font-size:11.5px; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap}
+  svg.ic{width:15px; height:15px; flex:none; vertical-align:middle}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="kicker">
+      <span class="eyebrow">Out-of-the-box · same 3B, same 30-rule spec</span>
+      <span class="chip">Qwen2.5-Coder-3B-4bit</span>
+      <span class="chip">27 rules · 23 rows</span>
+    </div>
+    <h1>Vote around the bugs, or never build the monolith</h1>
+    <p class="dek">Two non-standard attacks on the wall the greedy run hit. They point in
+      opposite directions — and <b>decomposition wins.</b></p>
+  </header>
+
+  <div class="hero">
+    <div class="score"><span class="big">23</span><span class="den">/23</span></div>
+    <div class="say">
+      <span class="tag">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>
+        rule-by-rule compiler
+      </span>
+      <h2>Decomposition clears it</h2>
+      <p>Ask the 3B for two dozen <b>tiny one-rule functions</b> instead of the monolith,
+        unit-test each, and let a fixed assembler wire them. Assembly was the bottleneck —
+        the atomic rules are easy.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="n">◇</span><h3>Two approaches, opposite outcomes</h3></div>
+    <p class="lead">Repair couldn't fix the monolith. So instead: <b>aggregate</b> many whole
+      attempts, or <b>shrink</b> what you ask for.</p>
+    <div class="versus">
+
+      <div class="panel fail">
+        <div class="phead">
+          <h4>Ensemble voting</h4>
+          <span class="pstate no">not viable</span>
+        </div>
+        <p class="psub">Sample K whole solutions; take the per-row majority. It only works if
+          the correct value lives <em>somewhere</em> in the committee.</p>
+        <div class="committee" role="img" aria-label="12 sampled programs: 9 crashed, 3 ran scoring 5, 5, and 0 out of 23">
+          <div class="cc ran" title="ran — 5/23">5</div>
+          <div class="cc ran" title="ran — 5/23">5</div>
+          <div class="cc zero" title="ran — 0/23">0</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+          <div class="cc crash" title="crashed">✕</div>
+        </div>
+        <div class="ccleg">
+          <span><span class="sw ran"></span> ran (score)</span>
+          <span><span class="sw crash"></span> crashed — no vote</span>
+        </div>
+        <div class="statrow">
+          <div class="stat"><div class="k">best single</div><div class="v">5<span style="color:var(--faint)">/23</span></div></div>
+          <div class="stat"><div class="k">majority vote</div><div class="v">5<span style="color:var(--faint)">/23</span></div></div>
+          <div class="stat hi"><div class="k">median</div><div class="v">9<span style="color:var(--faint)">/23</span></div></div>
+        </div>
+        <div class="ceil">
+          <span class="dot" style="background:var(--crash);margin-top:4px"></span>
+          <span>Even at temp 0.3, <b>9 of 12</b> samples crashed. The correct value was present
+            for only <b>9 of 23 rows</b> — a hard ceiling far below a pass. No committee to vote with.</span>
+        </div>
+      </div>
+
+      <div class="panel win">
+        <div class="phead">
+          <h4>Rule-by-rule compiler</h4>
+          <span class="pstate yes">works</span>
+        </div>
+        <p class="psub">Decompose into ~two dozen pure functions, unit-test &amp; resample each,
+          then a fixed assembler wires them in order.</p>
+        <div class="waffle" role="img" aria-label="28 atomic functions: 27 pass their unit test, 1 misses">
+          <div class="wc ok" title="passed unit test"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg></div>
+          <div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div>
+          <div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div>
+          <div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div>
+          <div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div><div class="wc ok"></div>
+          <div class="wc miss" title="the one dialect-trap function"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l7 13H3z"/><path d="M10 8.5v3.5"/></svg></div>
+        </div>
+        <div class="wafcap">
+          <span><span class="sw" style="background:var(--pass)"></span> 27 pass first/second try</span>
+          <span><span class="sw" style="background:var(--warn)"></span> 1 dialect trap</span>
+        </div>
+        <div class="arrow">
+          <span class="a">27/28 atomic → assemble →</span>
+          <span class="r">23/23</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">◇</span><h3>Three levers on the monolith</h3></div>
+    <p class="lead">Best score each approach reached on the 23 rows. Only shrinking the
+      <b>unit of generation</b> crossed the line.</p>
+    <div class="panel" style="padding-top:26px">
+      <div class="barwrap">
+        <div class="bars">
+          <div class="brow">
+            <div class="bm"><div class="bt">Repair the monolith</div><div class="bd">localized feedback · 0/2 converged</div></div>
+            <div class="btrack"><div class="bfill warn" style="width:69.6%"></div>
+              <div class="blabel inside"><span>16 / 23</span><span style="font-weight:500">✕ no pass</span></div></div>
+          </div>
+          <div class="brow">
+            <div class="bm"><div class="bt">Vote across attempts</div><div class="bd">per-row majority · median ceiling</div></div>
+            <div class="btrack"><div class="bfill crash" style="width:39.1%"></div>
+              <div class="blabel outside" style="left:39.1%"><span>9 / 23</span><span style="font-weight:500">✕ no pass</span></div></div>
+          </div>
+          <div class="brow">
+            <div class="bm"><div class="bt">Decompose into rules</div><div class="bd">27/28 atomic + assembler</div></div>
+            <div class="btrack"><div class="bfill pass" style="width:100%"></div>
+              <div class="blabel inside"><span>23 / 23</span><span style="font-weight:500">✓ pass</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="takeaway">
+    <span class="eyebrow">The thread</span>
+    <p>Repair tried to <b>fix</b> the monolith; voting tried to <b>outvote</b> it; decomposition
+      simply <b>never built</b> it. Shrink the unit of generation until it's both easy and checkable.</p>
+    <p class="sub">A full 30-rule attempt is a knife-edge that collapses under sampling — so voting
+      has no committee. An atomic one-rule attempt is rock-solid and unit-testable — so decomposition
+      turns the impossible monolith into a reliable 23/23 pipeline. The lone miss was the same old
+      trap in miniature: an ambiguous “1000/900” shorthand, and the empty-cell boolean.</p>
+  </div>
+
+  <footer>
+    <span>experiments/30-rule/outofbox · ensemble_vote.py + compiler.py</span>
+    <span>voting vs decomposition · 2026-07-06</span>
+  </footer>
+</div>

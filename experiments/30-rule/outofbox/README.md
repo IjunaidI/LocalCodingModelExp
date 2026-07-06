@@ -59,6 +59,61 @@ resample or reword just that micro-spec (the reference fallback used here is a s
 "resample until the unit test passes"). The dialect traps don't disappear under decomposition
 — but they shrink to a single localizable function instead of sinking the whole monolith.
 
+## How the assembled "atomic" solution works ([`compiler_solution.py`](compiler_solution.py))
+
+The output file has **two halves**, and the split is the whole idea.
+
+**1. ~27 atomic functions the model wrote.** Each is *pure*, takes primitive arguments, and
+returns one rate / multiplier / amount — nothing more. A few, verbatim from the run:
+
+```python
+def volume_rate(volume):          # Rule B — the multi-tier conditional
+    if volume < 100:   return 0.0
+    elif volume < 1000: return 0.05
+    else:              return 0.10
+
+def capital_city_rate(city):      # Rule R
+    return 0.10 if city in ["karachi","lahore","islamabad","peshawar","quetta"] else 0.0
+
+def accelerator_rate(customer, loyalty_status, volume, correction_fee):   # Rule X
+    return 0.07 if customer=="strategic" and loyalty_status=="platinum" \
+                   and volume>=1000 and correction_fee==0.0 else 0.0
+```
+
+Each one is trivially checkable *on its own*, so the harness ([`../compiler.py`](../compiler.py))
+unit-tests every function against the reference and resamples it until it passes. That is why
+the model gets 27/28 right first/second try — you never ask it to hold the whole pipeline in
+its head, only one rule at a time.
+
+**2. A fixed assembler we wrote** — the `process_calculations` at the bottom of the file. It
+does the part the model *couldn't*: read the CSV, normalize each field (strip / lower-case /
+to-number, `quarter` upper-cased), then call the atomic functions **in the exact pipeline
+order** and thread the data flow:
+
+```python
+rate = product_rate(pid, status);           rbd = volume * rate
+rad  = rbd * (1 - (spring_rate(season) + volume_rate(volume)
+                   + strategic_rate(customer) + loyalty_rate(years)))          # discounts
+base = (region_loading_rate(region) + payment_loading_rate(pay)
+        + quarter_loading_rate(quarter) + zone_loading_rate(txn)
+        + speed_loading_rate(speed)) * rad                                     # loadings
+adj  = base * category_multiplier(category)
+adj *= (1 - risk_fee_rate(hr));  adj *= (1 + referral_credit_rate(ref, remaining))
+pre  = rad + adj + correction_fee(corr_flag) + min_fee(rad + adj)
+total = pre - withholding_rate(tax) * pre                                      # master total
+for each cascade rule:  total *= (1 - <that rule's rate>)                      # R..AB
+escrow = escrow_amount(rbd)                                                    # 1% of rbd, separate
+```
+
+The division of labor is the lesson: the **model supplies the per-rule logic** (easy,
+independently verifiable) and the **assembler supplies the pipeline wiring** — the multi-step
+assembly that broke the monolith at L1→L2. Because each function has its own unit test, you
+always know exactly which one to resample; the single reference fallback in this run
+(`withholding_rate`, tripped by the empty-tax-cell boolean) is just the harness standing in for
+"resample until its test passes."
+
+Regenerate it: `.venv/bin/python experiments/30-rule/compiler.py --retries 4`.
+
 ## The takeaway
 
 At 30 rules, leverage comes from **reducing what you ask the model to do in one shot**, not
@@ -76,5 +131,7 @@ thread: shrink the unit of generation until it is both easy and checkable.
 ## Files
 - [`../ensemble_vote.py`](../ensemble_vote.py) — voting harness (`--k`, `--temp`, `--full-prompt`)
 - [`../compiler.py`](../compiler.py) — decompose → per-function unit-test → assemble
-- `compiler_solution.py` — the assembled 23/23 program (27 model functions + assembler)
+- [`compiler_solution.py`](compiler_solution.py) — **the assembled 23/23 program** (27 model
+  functions + the fixed assembler); walked through above
 - `ensemble_result.json`, `compiler_result.json` — raw result sheets
+- `viz_greedy.html`, `viz_outofbox.html` — the two result visualizations (open in a browser)

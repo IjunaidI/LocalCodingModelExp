@@ -1,0 +1,252 @@
+<title>30-rule spec on a 3B — the greedy run</title>
+<style>
+  :root{
+    --ground:#EEF1F6; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --ink:#141922; --muted:#5A6472; --faint:#8791A0;
+    --hair:#E1E6EE; --hair-2:#EAEEF4;
+    --accent:#3D5AE0;
+    --pass:#1F9D57; --warn:#C67A10; --crash:#B03A36;
+    --pass-soft:rgba(31,157,87,.12); --warn-soft:rgba(198,122,16,.14); --crash-soft:rgba(176,58,54,.12);
+    --shadow:0 1px 2px rgba(18,24,38,.04), 0 8px 30px rgba(18,24,38,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#0C1016; --surface:#151A22; --surface-2:#11161D;
+      --ink:#E7ECF3; --muted:#8B95A6; --faint:#6B7484;
+      --hair:#262D38; --hair-2:#1E242D;
+      --accent:#6E7BEC;
+      --pass:#2AA96E; --warn:#B26F16; --crash:#D25C55;
+      --pass-soft:rgba(42,169,110,.16); --warn-soft:rgba(178,111,22,.20); --crash-soft:rgba(210,92,85,.16);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.36);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#EEF1F6; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --ink:#141922; --muted:#5A6472; --faint:#8791A0; --hair:#E1E6EE; --hair-2:#EAEEF4;
+    --accent:#3D5AE0; --pass:#1F9D57; --warn:#C67A10; --crash:#B03A36;
+    --pass-soft:rgba(31,157,87,.12); --warn-soft:rgba(198,122,16,.14); --crash-soft:rgba(176,58,54,.12);
+    --shadow:0 1px 2px rgba(18,24,38,.04), 0 8px 30px rgba(18,24,38,.06);
+  }
+  :root[data-theme="dark"]{
+    --ground:#0C1016; --surface:#151A22; --surface-2:#11161D;
+    --ink:#E7ECF3; --muted:#8B95A6; --faint:#6B7484; --hair:#262D38; --hair-2:#1E242D;
+    --accent:#6E7BEC; --pass:#2AA96E; --warn:#B26F16; --crash:#D25C55;
+    --pass-soft:rgba(42,169,110,.16); --warn-soft:rgba(178,111,22,.20); --crash-soft:rgba(210,92,85,.16);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.36);
+  }
+  *{box-sizing:border-box}
+  :root{
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); line-height:1.55;
+    -webkit-font-smoothing:antialiased; font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:clamp(20px,4vw,56px) clamp(16px,4vw,40px) 80px}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600}
+
+  /* Masthead */
+  header.mast{border-bottom:1px solid var(--hair); padding-bottom:22px; margin-bottom:34px}
+  .mast .kicker{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .chip{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--muted);
+    border:1px solid var(--hair); border-radius:999px; padding:3px 10px; background:var(--surface)}
+  h1{font-size:clamp(28px,5vw,44px); line-height:1.05; letter-spacing:-.02em; margin:.1em 0 0;
+    font-weight:680; text-wrap:balance; max-width:16ch}
+  .dek{color:var(--muted); font-size:clamp(15px,2.2vw,17px); margin:14px 0 0; max-width:60ch}
+
+  /* Hero readout */
+  .hero{display:grid; grid-template-columns:auto 1fr; gap:clamp(20px,4vw,40px); align-items:center;
+    background:var(--surface); border:1px solid var(--hair); border-radius:16px;
+    padding:clamp(22px,4vw,38px); box-shadow:var(--shadow); margin-bottom:16px; position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--pass)}
+  .score{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600;
+    line-height:.9; letter-spacing:-.03em; display:flex; align-items:baseline; gap:.06em}
+  .score .big{font-size:clamp(58px,13vw,104px); color:var(--pass)}
+  .score .den{font-size:clamp(26px,6vw,44px); color:var(--faint)}
+  .hero .say .tag{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono);
+    font-size:12px; letter-spacing:.04em; color:var(--pass); background:var(--pass-soft);
+    border-radius:999px; padding:4px 11px; font-weight:600}
+  .hero .say h2{font-size:clamp(19px,3vw,24px); margin:14px 0 6px; letter-spacing:-.01em; font-weight:640}
+  .hero .say p{margin:0; color:var(--muted); font-size:14.5px; max-width:46ch}
+  .hero .say b{color:var(--ink); font-weight:620}
+
+  section{margin-top:40px}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px}
+  .sec-head .n{font-family:var(--mono); font-size:12px; color:var(--faint)}
+  h3{font-size:clamp(18px,2.6vw,21px); margin:0; letter-spacing:-.01em; font-weight:640; text-wrap:balance}
+  .lead{color:var(--muted); margin:.35em 0 20px; max-width:62ch; font-size:15px}
+  .lead b{color:var(--ink); font-weight:600}
+
+  .card{background:var(--surface); border:1px solid var(--hair); border-radius:14px;
+    padding:clamp(18px,3vw,26px); box-shadow:var(--shadow)}
+
+  /* Knife-edge paired readout */
+  .knife{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media (max-width:560px){.knife{grid-template-columns:1fr}}
+  .ke{border:1px solid var(--hair); border-radius:12px; padding:18px 18px 16px; background:var(--surface-2)}
+  .ke .lab{font-family:var(--mono); font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; margin-bottom:12px}
+  .ke code{font-family:var(--mono); background:var(--surface); border:1px solid var(--hair); border-radius:5px; padding:1px 6px; font-size:12px; color:var(--ink)}
+  .ke .val{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:clamp(30px,6vw,42px); line-height:1; letter-spacing:-.02em}
+  .ke .val .d{color:var(--faint); font-size:.55em}
+  .ke.win .val{color:var(--pass)} .ke.lose .val{color:var(--warn)}
+  .ke .bar{height:8px; border-radius:6px; background:var(--hair-2); margin-top:14px; overflow:hidden}
+  .ke .bar i{display:block; height:100%; border-radius:6px}
+  .ke.win .bar i{background:var(--pass); width:100%}
+  .ke.lose .bar i{background:var(--warn); width:69.6%}
+  .ke .note{font-size:12.5px; color:var(--muted); margin-top:10px}
+  .verdict{margin-top:14px; font-size:14px; color:var(--ink); display:flex; gap:9px; align-items:flex-start}
+  .verdict .dot{flex:none; margin-top:3px}
+  .verdict b{color:var(--crash); font-weight:640}
+
+  /* Ladder */
+  .ladder{display:flex; flex-direction:column; gap:11px}
+  .rung{display:grid; grid-template-columns:132px 1fr; gap:16px; align-items:center}
+  @media (max-width:560px){.rung{grid-template-columns:1fr; gap:5px}}
+  .rung .meta{min-width:0}
+  .rung .rk{font-family:var(--mono); font-size:12px; color:var(--faint)}
+  .rung .rt{font-size:13px; color:var(--ink); line-height:1.25}
+  .track{position:relative; height:30px; background:var(--surface-2); border:1px solid var(--hair-2);
+    border-radius:8px; overflow:hidden}
+  .fill{position:absolute; left:0; top:0; bottom:0; border-radius:7px 6px 6px 7px; display:flex; align-items:center;
+    min-width:3px; transition:width .2s}
+  .fill.warn{background:var(--warn)} .fill.crash{background:var(--crash)}
+  .track .rowlabel{position:absolute; top:0; bottom:0; display:flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; font-weight:600; padding:0 11px}
+  .track .rowlabel.inside{left:0; color:#fff}
+  .track .rowlabel.outside{color:var(--muted)}
+  .track .rowlabel .out{font-weight:500; letter-spacing:.02em}
+  .cliff{display:flex; align-items:center; gap:10px; margin:2px 0 2px 148px; color:var(--crash);
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.03em}
+  @media (max-width:560px){.cliff{margin-left:0}}
+  .cliff .line{flex:1; height:1px; background:linear-gradient(90deg,var(--crash),transparent)}
+
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:20px; padding-top:16px; border-top:1px solid var(--hair-2)}
+  .lg{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .sw{width:12px; height:12px; border-radius:3px; flex:none}
+  .sw.pass{background:var(--pass)} .sw.warn{background:var(--warn)} .sw.crash{background:var(--crash)}
+
+  .modes{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px}
+  .modes .m{font-family:var(--mono); font-size:12px; color:var(--muted); background:var(--crash-soft);
+    border:1px solid transparent; border-radius:7px; padding:6px 11px}
+  .modes .m b{color:var(--crash); font-weight:600}
+
+  footer{margin-top:52px; padding-top:20px; border-top:1px solid var(--hair); color:var(--faint);
+    font-family:var(--mono); font-size:11.5px; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap}
+  svg.ic{width:15px; height:15px; flex:none; vertical-align:middle}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="kicker">
+      <span class="eyebrow">Small-model code generation</span>
+      <span class="chip">Qwen2.5-Coder-3B-4bit · Apple MLX</span>
+      <span class="chip">27 rules · 23 rows</span>
+    </div>
+    <h1>The greedy run, with no repair loop</h1>
+    <p class="dek">One deterministic pass at a 30-rule pricing spec. It works — spectacularly and
+      fragilely — and then falls off a cliff the moment the wording relaxes.</p>
+  </header>
+
+  <div class="hero">
+    <div class="score"><span class="big">23</span><span class="den">/23</span></div>
+    <div class="say">
+      <span class="tag">
+        <svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>
+        first attempt · greedy · zero repairs
+      </span>
+      <h2>Every row correct on iteration&nbsp;1</h2>
+      <p>From the precise, prescriptive spec, the 3B emitted a fully correct 27-rule
+        <b class="mono">process_calculations()</b> — no sampling, no repair loop. The catch is
+        everything below.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="n">01</span><h3>The pass is a knife-edge</h3></div>
+    <p class="lead">Same spec, same deterministic greedy decode — the two prompts differ by
+      <b>exactly one byte</b>: a trailing newline. A controlled test on one loaded model:</p>
+    <div class="card">
+      <div class="knife">
+        <div class="ke win">
+          <div class="lab"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10.5l4 4 8-9"/></svg> prompt ends with <code>escrow.\n</code></div>
+          <div class="val">23<span class="d">/23</span></div>
+          <div class="bar"><i></i></div>
+          <div class="note">8,453 characters</div>
+        </div>
+        <div class="ke lose">
+          <div class="lab"><svg class="ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l7 13H3z"/><path d="M10 8v4"/></svg> newline stripped: <code>escrow.</code></div>
+          <div class="val">16<span class="d">/23</span></div>
+          <div class="bar"><i></i></div>
+          <div class="note">8,452 characters</div>
+        </div>
+      </div>
+      <div class="verdict">
+        <span class="dot" style="background:var(--crash)"></span>
+        <span>Deleting one whitespace byte moved <b>7 of 23 rows</b>. Greedy is deterministic,
+          so this is causal — the pass sits on a razor's edge.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="n">02</span><h3>Relax the wording, and it collapses</h3></div>
+    <p class="lead">Same 27 rules, same 23 targets — only the spec's <b>dialect</b> changes, from
+      prescriptive pseudocode (L1) down to the raw business requirement (L5). Best of five
+      attempts per rung, no repair.</p>
+    <div class="card">
+      <div class="ladder">
+        <div class="rung">
+          <div class="meta"><div class="rk">L1</div><div class="rt">Prescriptive pseudocode</div></div>
+          <div class="track" title="L1 — ran, 16/23">
+            <div class="fill warn" style="width:69.6%"></div>
+            <div class="rowlabel inside"><span>16 / 23</span><span class="out">· ran, wrong numbers</span></div>
+          </div>
+        </div>
+        <div class="cliff"><span>the cliff</span><span class="line"></span></div>
+        <div class="rung">
+          <div class="meta"><div class="rk">L2</div><div class="rt">Declarative prose · tables kept</div></div>
+          <div class="track" title="L2 — 0/23, crashed"><div class="fill crash" style="width:2.5%"></div>
+            <div class="rowlabel outside" style="left:2.5%"><span>0 / 23</span><span class="out">· crashed</span></div></div>
+        </div>
+        <div class="rung">
+          <div class="meta"><div class="rk">L3</div><div class="rt">Business prose · tables removed</div></div>
+          <div class="track" title="L3 — 0/23, crashed"><div class="fill crash" style="width:2.5%"></div>
+            <div class="rowlabel outside" style="left:2.5%"><span>0 / 23</span><span class="out">· crashed</span></div></div>
+        </div>
+        <div class="rung">
+          <div class="meta"><div class="rk">L4</div><div class="rt">Natural rules · “%” &amp; prose tiers</div></div>
+          <div class="track" title="L4 — 0/23, crashed"><div class="fill crash" style="width:2.5%"></div>
+            <div class="rowlabel outside" style="left:2.5%"><span>0 / 23</span><span class="out">· crashed</span></div></div>
+        </div>
+        <div class="rung">
+          <div class="meta"><div class="rk">L5</div><div class="rt">Raw requirement · True/False</div></div>
+          <div class="track" title="L5 — 0/23, crashed"><div class="fill crash" style="width:2.5%"></div>
+            <div class="rowlabel outside" style="left:2.5%"><span>0 / 23</span><span class="out">· crashed</span></div></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span class="lg"><span class="sw warn"></span> ran, wrong numbers</span>
+        <span class="lg"><span class="sw crash"></span> crashed before it could be scored</span>
+      </div>
+      <div class="modes">
+        <span class="m">below L1, the code doesn't run:</span>
+        <span class="m"><b>KeyError</b> on a table lookup</span>
+        <span class="m"><b>undefined name</b></span>
+        <span class="m"><b>syntax error</b></span>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:18px">The break is <b>L1 → L2</b> — and L2 still hands over the
+      lookup tables verbatim. Drop the step-by-step imperative recipe and a 3B can no longer even
+      assemble runnable code for a 27-rule pipeline. (At 10 rules the same cliff sat one rung lower;
+      more rules raise the bar.)</p>
+  </section>
+
+  <footer>
+    <span>experiments/30-rule · solve_30.py + ladder/run_ladder_30.py</span>
+    <span>greedy · no repair · 2026-07-06</span>
+  </footer>
+</div>
