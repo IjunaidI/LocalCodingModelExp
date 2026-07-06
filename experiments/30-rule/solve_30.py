@@ -17,6 +17,7 @@ import os
 import re
 import csv
 import argparse
+import traceback
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -72,17 +73,28 @@ def extract_code(text):
     return (m.group(1) if m else text).strip()
 
 
+def _crash_detail(code):
+    """The failing line + exception, so a crash can be localized in the repair prompt
+    (a bare `KeyError: 'Q2'` tells the model nothing about WHERE it blew up)."""
+    tb = traceback.format_exc().strip().splitlines()
+    # Keep the exception line and the innermost `process_calculations` frame.
+    exc = tb[-1]
+    frame = next((tb[i + 1].strip() for i in range(len(tb) - 1)
+                  if "process_calculations" in tb[i] or ", line" in tb[i]), "")
+    return f"{exc}" + (f"  (at: `{frame}`)" if frame else "")
+
+
 def score(code, inputs_csv, targets, escrows):
     ns = {}
     try:
         exec(code, ns)  # noqa: S102
         fn = ns["process_calculations"]
-    except Exception as e:
-        return 0, [], f"code did not load: {e}"
+    except Exception:
+        return 0, [], f"code did not load: {_crash_detail(code)}"
     try:
         result = fn(str(inputs_csv))
-    except Exception as e:
-        return 0, [], f"process_calculations raised: {e}"
+    except Exception:
+        return 0, [], f"process_calculations crashed: {_crash_detail(code)}"
     if not isinstance(result, list) or len(result) != len(targets):
         return 0, [], (f"expected list of {len(targets)} dicts, got "
                        f"{type(result).__name__}")
@@ -109,7 +121,10 @@ def score(code, inputs_csv, targets, escrows):
 
 
 def build_repair_prompt(prev_code, passed, total, lines, err):
-    problem = (f"Your previous code did not run: {err}" if err else
+    problem = (f"Your previous code raised an error before it could be scored:\n  {err}\n"
+               "Find the exact line that caused it and fix it (check dict-key types and "
+               "casing, and that every variable is defined before use)."
+               if err else
                f"Your previous code passed {passed}/{total} rows. These are wrong:\n"
                + "\n".join(lines))
     return ("Your previous attempt:\n```python\n" + prev_code + "\n```\n\n" + problem

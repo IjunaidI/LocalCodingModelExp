@@ -9,9 +9,9 @@ model. This mirrors 10-rule-v2/model_solution_v2.py.
 import csv
 
 PRODUCT_RATES = {
-    1: {"individual": 1000, "corporate": 900},
-    2: {"individual": 1500, "corporate": 1200},
-    3: {"individual": 2000, "corporate": 1700},
+    "1": {"individual": 1000, "corporate": 900},
+    "2": {"individual": 1500, "corporate": 1200},
+    "3": {"individual": 2000, "corporate": 1700},
 }
 CATEGORY_MULTIPLIER = {"electronics": 1.2, "groceries": 0.8, "luxury": 1.5}
 ZONE_LOADING = {"domestic": 0.05, "international": 0.08, "cross-border": 0.10}
@@ -38,7 +38,7 @@ def process_calculations(csv_path):
             def txt(key):
                 return str(row.get(key, "")).strip().lower()
 
-            productid = int(_to_num(row.get("productid"), 0))
+            productid = str(row.get("productid", "")).strip()
             status = txt("status")
             volume = _to_num(row.get("volume"))
             seller_years = _to_num(row.get("seller years"))

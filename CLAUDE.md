@@ -13,6 +13,7 @@ experiments/5-rule/            Minimal 5-rule spec — 3B passes 12/12, first tr
 experiments/10-rule-original/  Original True/False 10-rule baseline — trips the model.
 experiments/10-rule-v2/        ★ The deliverable — same 10 rules re-dialected → 12/12.
 experiments/sweet-spot/        5-level spec ladder — locates the dialect break (L2→L3).
+experiments/30-rule/           Scale test — a fresh ~30-rule spec; 3B passes 23/23 first try.
 docs/                          Writeup.
 finetune-with-mlx/             Sibling subproject (LoRA fine-tuning).
 unit-test-11-mar-26/           Sibling subproject (procurement-reader tests).
@@ -136,3 +137,19 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   candidates (a cool-start control at 0.3:0.15 refuted the "hot phase is wasted"
   hypothesis — L5 did not re-converge): candidate volume matters, schedule fine-tuning
   doesn't measurably.
+- Scale test — a fresh ~30-rule spec (DONE, 2026-07-06, `experiments/30-rule/`). A new,
+  much bigger requirement from Fahad (27 lettered rules A–V, X–AB: a deep ordered pipeline
+  + a 10-step total-receivables discount cascade). Ground truth is `reference_30.py`, built
+  from the prose and validated to reproduce Fahad's `total Receivable` column **exactly on
+  all 19 original rows** (Fahad's CSV is input-only; his post-cascade column is incomplete,
+  so the cascade is computed from the prose, multiplicatively). Dataset = 19 Fahad rows
+  (booleans → yes/no) + 4 synthetic coverage rows so every rule A–AB fires. **The 3B passes
+  23/23 on the first greedy attempt** with the precise dialect spec (`spec_30.md`) — the
+  thesis holds at 3× the rules. Key finding: the *first* precise spec still crashed greedy,
+  and NOT on arithmetic — on the lookups (`PRODUCT_RATES["1"]` vs int keys → KeyError;
+  `QUARTER_LOADING["Q2"]` vs lowercase keys). Fix: key every table to the data's exact
+  type/casing (product ids as strings, quarter matched upper-case, Rule G as additive
+  `if`s), which extends the 10-rule "hand over the tables" lesson to "hand them over keyed
+  to match the data." Also hardened the repair loop to feed the traceback (crashes localize;
+  greedy passed before it was needed). Offline re-score: `prove_30.py` (total_receivables +
+  escrow). A spec-only `model_solution_30.py` scores 23/23, proving the spec carries it.

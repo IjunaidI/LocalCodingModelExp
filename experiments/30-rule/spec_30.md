@@ -7,10 +7,13 @@ contain the keys `total_receivables` and `escrow`.
 General rules for reading the CSV:
 - Strip surrounding spaces from every header name and every cell value.
 - Treat an empty cell as its stated default.
-- Convert `productid`, `volume`, `seller years`, `referral invoices remaining`, and
-  `weight` to numbers.
-- Compare all text fields in lower case.
-- Every boolean cell is the text "yes" or "no"; an empty cell counts as "no".
+- Convert `volume`, `seller years`, `referral invoices remaining`, and `weight` to numbers.
+  Keep `productid` as text ("1", "2", "3") — it is used directly as a `PRODUCT_RATES` key.
+- Compare text fields case-insensitively (lower-case them), EXCEPT `quarter`, which is
+  upper-case in the data (Q1–Q4) — use it exactly as written.
+- Every boolean cell is the text "yes" or "no"; an empty cell counts as "no". Compare the
+  literal text (e.g. `== "yes"`); do NOT convert cells to Python `True`/`False`.
+- If a value is not found in a lookup table, use `0` for its rate (do not raise an error).
 
 ## Input columns
 - `productid` : the text "1", "2", or "3"
@@ -37,10 +40,10 @@ General rules for reading the CSV:
 
 ## Lookup tables (copy these exactly)
 ```
-PRODUCT_RATES = {
-    1: {"individual": 1000, "corporate": 900},
-    2: {"individual": 1500, "corporate": 1200},
-    3: {"individual": 2000, "corporate": 1700},
+PRODUCT_RATES = {          # keys are the text "1"/"2"/"3", matching the productid cell
+    "1": {"individual": 1000, "corporate": 900},
+    "2": {"individual": 1500, "corporate": 1200},
+    "3": {"individual": 2000, "corporate": 1700},
 }
 
 CATEGORY_MULTIPLIER = {
@@ -61,19 +64,12 @@ SPEED_PREMIUM = {         # by processing speed
     "standard": 0.0,
 }
 
-QUARTER_LOADING = {       # by quarter
-    "q1": 0.02,
-    "q2": 0.0,
-    "q3": 0.0,
-    "q4": -0.01,
-}
-
 CAPITAL_CITIES = {"karachi", "lahore", "islamabad", "peshawar", "quetta"}
 ```
 
 ## The rules (apply in this exact order)
 
-1. **Rate.** `rate = PRODUCT_RATES[productid][status]`.
+1. **Rate.** `rate = PRODUCT_RATES[productid][status]` (use `productid` as the text "1"/"2"/"3").
 
 2. **Base.** `receivable_before_discount = volume * rate`.
 
@@ -100,7 +96,12 @@ CAPITAL_CITIES = {"karachi", "lahore", "islamabad", "peshawar", "quetta"}
 
 9. **Payment loading.** Start `payment_loading = 0.0`. If `payment type` is "credit-card", set `payment_loading = 0.025 * receivable_after_discount`.
 
-10. **Quarter loading.** `quarter_loading = QUARTER_LOADING[quarter] * receivable_after_discount`. (Q4 is negative.)
+10. **Quarter loading.** Build the rate with independent checks (do NOT use elif):
+    Start `quarter_rate = 0.0`.
+    If `quarter` is "Q1", set `quarter_rate = 0.02`.
+    If `quarter` is "Q4", set `quarter_rate = -0.01`.
+    (Q2 and Q3 leave it at 0.0. `quarter` is upper-case like "Q2".)
+    `quarter_loading = quarter_rate * receivable_after_discount`.
 
 11. **Zone loading.** `zone_loading = ZONE_LOADING[transaction type] * receivable_after_discount`.
 
@@ -122,6 +123,7 @@ CAPITAL_CITIES = {"karachi", "lahore", "islamabad", "peshawar", "quetta"}
     `pre_withholding_total = receivable_after_discount + adjusted_commission_total + correction_fee + minimum_transaction_fee`.
     Start `tax_withholding_amount = 0.0`.
     If `tax verified` is "no" (or the cell was empty), set `tax_withholding_amount = 0.03 * pre_withholding_total`.
+    If `tax verified` is "yes", leave `tax_withholding_amount = 0.0`.
 
 20. **Total (before the final discounts).** `total_receivables = pre_withholding_total - tax_withholding_amount`.
 

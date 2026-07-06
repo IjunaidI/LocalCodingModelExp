@@ -35,6 +35,7 @@ discount") so the model doesn't have to translate prose into math.
 | 10 rules (original) | 7B | 1/12 | architecture right, ~2–5% off on detail bugs |
 | **5 rules** | **3B** | **12/12** ✅ | removing hard constructs fixes it |
 | **10 rules (v2 re-dialect)** | **3B** | **12/12** ✅ | **same 10 rules, re-phrased → passes** |
+| **~30 rules (v2 dialect)** | **3B** | **23/23** ✅ | **thesis holds at 3× the rules — key the tables to the data** |
 
 The last row is the point: keeping all ten rules but rewriting them in the model's
 dialect closes the gap from 1/12 to **12/12 on the first greedy attempt**. Same
@@ -75,7 +76,8 @@ experiments/
 ├── 5-rule/            Minimal 5-rule spec. 3B passes 12/12, first try.
 ├── 10-rule-original/  The True/False 10-rule baseline that trips the model (the "before").
 ├── 10-rule-v2/        ★ The deliverable: same 10 rules re-dialected → 12/12.
-└── sweet-spot/        5-level spec ladder pinning the exact dialect boundary where it breaks.
+├── sweet-spot/        5-level spec ladder pinning the exact dialect boundary where it breaks.
+└── 30-rule/           Scale test: a fresh ~30-rule spec (27 rules) → 3B passes 23/23 first try.
 docs/
 └── slm-coding-experiment.md   Full narrative writeup of the experiment.
 finetune-with-mlx/     Sibling subproject: LoRA fine-tuning experiments (self-contained).
