@@ -127,11 +127,73 @@ def classify(passed, total, err):
     return "crash: other"
 
 
+def build_repair_prompt(spec_text, prev_code, passed, total, lines, err):
+    """Same feedback contract as solve_30.build_repair_prompt (traceback for a crash,
+    per-row diffs for numeric errors), but appends THIS rung's spec."""
+    problem = (f"Your previous code raised an error before it could be scored:\n  {err}\n"
+               "Find the exact line that caused it and fix it (check dict-key types and "
+               "casing, and that every variable is defined before use)."
+               if err else
+               f"Your previous code passed {passed}/{total} rows. These are wrong:\n"
+               + "\n".join(lines))
+    return ("Your previous attempt:\n```python\n" + prev_code + "\n```\n\n" + problem
+            + "\n\nFix the code so EVERY row matches on both total_receivables and escrow. "
+            "Respond with ONLY the full corrected function in a single ```python block.\n\n"
+            + spec_text)
+
+
+def run_repair_rung(ask_fn, spec_text, content, inputs_csv, targets, escrows, total,
+                    greedy, repair_sampler, max_iters, trajectories):
+    """Iteration 1 greedy; then up to max_iters repair iterations feeding the localized
+    error/diff back, over `trajectories` independent stochastic repair runs."""
+    code1 = extract_code(ask_fn(content, greedy))
+    p1, l1, e1 = score(code1, inputs_csv, targets, escrows)
+    print(f"  it1 greedy: {p1}/{total}"
+          + (f"  [{classify(p1, total, e1)}]" if p1 < total else "  PASS"))
+    overall = (p1, code1)
+    if p1 == total:
+        return {"greedy": p1, "best": p1, "code": code1, "converged": trajectories,
+                "min_iters": 1, "trajectories": trajectories, "max_iters": max_iters,
+                "paths": [[p1]] * trajectories}
+    conv_iters, paths = [], []
+    for t in range(trajectories):
+        cur = build_repair_prompt(spec_text, code1, p1, total, l1, e1)
+        best_s, best_c, conv, path = p1, code1, None, [p1]
+        for it in range(2, max_iters + 1):
+            code = extract_code(ask_fn(cur, repair_sampler))
+            passed, lines, err = score(code, inputs_csv, targets, escrows)
+            path.append(passed)
+            print(f"    traj {t + 1} it{it}: {passed}/{total}"
+                  + (f"  [{classify(passed, total, err)}]" if passed < total else "  PASS"))
+            if passed > best_s:
+                best_s, best_c = passed, code
+            if passed == total:
+                conv = it
+                break
+            cur = build_repair_prompt(spec_text, code, passed, total, lines, err)
+        paths.append(path)
+        if conv:
+            conv_iters.append(conv)
+        if best_s > overall[0]:
+            overall = (best_s, best_c)
+    return {"greedy": p1, "best": overall[0], "code": overall[1],
+            "converged": len(conv_iters), "min_iters": (min(conv_iters) if conv_iters else None),
+            "trajectories": trajectories, "max_iters": max_iters, "paths": paths}
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run the 30-rule spec-dialect ladder.")
     ap.add_argument("--samples", type=int, default=5,
                     help="attempts per rung; attempt 1 is greedy, the rest sampled.")
     ap.add_argument("--temp", type=float, default=0.4, help="temperature for sampled attempts.")
+    ap.add_argument("--repair", action="store_true",
+                    help="generate -> score -> repair loop per rung (iter 1 greedy, then "
+                         "localized-feedback repairs) instead of the sampled-attempts read.")
+    ap.add_argument("--trajectories", type=int, default=2, help="independent repair runs per rung.")
+    ap.add_argument("--max-iters", dest="max_iters", type=int, default=5,
+                    help="max iterations per repair trajectory (incl. the greedy iter 1).")
+    ap.add_argument("--repair-temp", dest="repair_temp", type=float, default=0.6,
+                    help="temperature for repair iterations.")
     ap.add_argument("--levels", type=str, default="", help="subset, e.g. 1,3,5.")
     ap.add_argument("--model", type=str, default=MODEL)
     args = ap.parse_args()
@@ -144,6 +206,7 @@ def main():
     from mlx_lm.sample_utils import make_sampler
     greedy = make_sampler(temp=0.0)
     sampled = make_sampler(temp=args.temp, top_p=0.9)
+    repair_sampler = make_sampler(temp=args.repair_temp, top_p=0.9)
 
     def ask(model, tok, content, sampler):
         prompt = tok.apply_chat_template([{"role": "user", "content": content}],
@@ -153,6 +216,11 @@ def main():
 
     print(f"Loading {args.model} ...\n")
     model, tok = load(args.model)
+    ask_fn = lambda content, sampler: ask(model, tok, content, sampler)  # noqa: E731
+
+    if args.repair:
+        print(f"Mode: repair loop — up to {args.max_iters} iters, "
+              f"{args.trajectories} trajectories/rung, repair temp {args.repair_temp}.\n")
 
     results = []
     for cfg in todo:
@@ -166,6 +234,23 @@ def main():
         print("=" * 64)
         print(f"LEVEL {cfg['level']} — {cfg['title']}  (expect: {cfg['expect']})")
         print("=" * 64)
+
+        if args.repair:
+            rr = run_repair_rung(ask_fn, spec_text, content, inputs_csv, targets, escrows,
+                                 total, greedy, repair_sampler, args.max_iters,
+                                 args.trajectories)
+            (LADDER_DIR / f"level_{cfg['level']}_solution_repair.py").write_text(
+                rr.get("code", "") + "\n")
+            r = {"level": cfg["level"], "title": cfg["title"], "expect": cfg["expect"],
+                 "dataset": cfg["dataset"], "total": total, **rr}
+            r.pop("code", None)
+            results.append(r)
+            note = " (greedy first try)" if r["min_iters"] == 1 and r["converged"] else ""
+            fastest = f", fastest iter {r['min_iters']}" if r["min_iters"] else ""
+            print(f"  -> converged {r['converged']}/{r['trajectories']}{note}{fastest}, "
+                  f"best {r['best']}/{total}")
+            print(f"     paths {r['paths']}\n")
+            continue
 
         attempts = []
         for a in range(args.samples):
@@ -196,21 +281,39 @@ def main():
         print(f"     outcomes: {top}\n")
 
     # --- report -----------------------------------------------------------------------
-    lines = ["# 30-rule ladder — results", "",
-             f"{args.samples} attempts per rung (attempt 1 greedy, rest at temp {args.temp}); "
-             "scored on total_receivables AND escrow across all rows.", "",
-             "| Level | Spec dialect | Greedy | Best-of-N | Pass-rate | Most common outcome |",
-             "|:-----:|--------------|:------:|:---------:|:---------:|---------------------|"]
-    for r in results:
-        top = "; ".join(f"{k}×{n}" for k, n in r["reasons"][:2])
-        lines.append(f"| L{r['level']} | {r['title']} | {r['greedy']}/{r['total']} | "
-                     f"{r['best']}/{r['total']} | {r['perfect']}/{r['samples']} | {top} |")
-    lines += ["", "Per-rung score distributions (each number is one attempt; attempt 1 greedy):", ""]
-    for r in results:
-        lines.append(f"- **L{r['level']} {r['title']}** — `{r['scores']}`; "
-                     + ", ".join(f"{k} ×{n}" for k, n in r["reasons"]))
-    (LADDER_DIR / "results_ladder.md").write_text("\n".join(lines) + "\n")
-    (LADDER_DIR / "results_ladder.json").write_text(json.dumps(results, indent=2))
+    if args.repair:
+        out_md, out_json = "results_ladder_repair.md", "results_ladder_repair.json"
+        lines = ["# 30-rule ladder — repair-loop results", "",
+                 f"Iteration 1 greedy, then up to {args.max_iters} repair iterations "
+                 f"(temp {args.repair_temp}) with localized feedback, over {args.trajectories} "
+                 "trajectories per rung; scored on total_receivables AND escrow.", "",
+                 "| Level | Spec dialect | Greedy | Converged | Fastest | Best |",
+                 "|:-----:|--------------|:------:|:---------:|:-------:|:----:|"]
+        for r in results:
+            conv = f"{r['converged']}/{r['trajectories']}"
+            fastest = f"iter {r['min_iters']}" if r["min_iters"] else "—"
+            lines.append(f"| L{r['level']} | {r['title']} | {r['greedy']}/{r['total']} | "
+                         f"{conv} | {fastest} | {r['best']}/{r['total']} |")
+        lines += ["", "Per-trajectory score paths (rows passed after each iteration):", ""]
+        for r in results:
+            lines.append(f"- **L{r['level']} {r['title']}** — {r['paths']}")
+    else:
+        out_md, out_json = "results_ladder.md", "results_ladder.json"
+        lines = ["# 30-rule ladder — results", "",
+                 f"{args.samples} attempts per rung (attempt 1 greedy, rest at temp {args.temp}); "
+                 "scored on total_receivables AND escrow across all rows.", "",
+                 "| Level | Spec dialect | Greedy | Best-of-N | Pass-rate | Most common outcome |",
+                 "|:-----:|--------------|:------:|:---------:|:---------:|---------------------|"]
+        for r in results:
+            top = "; ".join(f"{k}×{n}" for k, n in r["reasons"][:2])
+            lines.append(f"| L{r['level']} | {r['title']} | {r['greedy']}/{r['total']} | "
+                         f"{r['best']}/{r['total']} | {r['perfect']}/{r['samples']} | {top} |")
+        lines += ["", "Per-rung score distributions (each number is one attempt; attempt 1 greedy):", ""]
+        for r in results:
+            lines.append(f"- **L{r['level']} {r['title']}** — `{r['scores']}`; "
+                         + ", ".join(f"{k} ×{n}" for k, n in r["reasons"]))
+    (LADDER_DIR / out_md).write_text("\n".join(lines) + "\n")
+    (LADDER_DIR / out_json).write_text(json.dumps(results, indent=2))
 
     print("=" * 64)
     print("LADDER SUMMARY")
