@@ -163,5 +163,13 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   pseudocode the 3B collapses to 0/23 and the failures are CRASHES (KeyError lookups,
   undefined names, syntax) not numeric drift — even L2, which keeps the lookup tables
   verbatim, can't emit runnable code. The 10-rule cliff was L2→L3 (tables); at 30 rules the
-  step-by-step imperative recipe itself is load-bearing, tables alone aren't enough. Full
-  data in `ladder/README.md`.
+  step-by-step imperative recipe itself is load-bearing, tables alone aren't enough. (3)
+  **Repair loops rescue nothing** (`run_ladder_30.py --repair`, iter1 greedy + localized
+  feedback, 2 trajectories × 5 iters): every rung converges 0/2. L1's stripped-prompt greedy
+  misses on exactly the 7 capital-city rows from a single wrong constant (Rule R coded
+  `1 - 0.01` not `1 - 0.10`), and per-row-total feedback never localizes it (holds at 16/23,
+  one trajectory regresses to 5); L2–L5 stay crashed (at L3 the model even wraps rows in a
+  try/except that skips them → wrong return shape). Scalar/exception repair can't localize in
+  a 27-rule pipeline — matches the sweet-spot plain-`--repair` 0/3; only `--repair2 --fresh`
+  cracked hard rungs there, but that targets numeric oscillation, not the unrunnable-code
+  failure seen here. Full data in `ladder/README.md`.

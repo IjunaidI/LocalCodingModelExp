@@ -85,6 +85,10 @@ raw business requirement) locates where the 3B breaks — and the answer is star
 - **Scale raises the cliff:** the 10-rule ladder broke at L2→L3 (tables removed); at 30 rules
   it breaks one rung higher, L1→L2 — the step-by-step imperative recipe itself is
   load-bearing, tables alone aren't enough.
+- **Repair loops rescue nothing** (`--repair`): every rung converges 0/2. L1 misses on
+  exactly the 7 capital-city rows because of a single wrong constant (Rule R coded `1 - 0.01`
+  instead of `1 - 0.10`), and per-row-total feedback never localizes it over 4 iterations
+  (it even regresses 16→5); L2–L5 stay crashed. Iteration is not a lever at 30 rules.
 
 Full data and interpretation in [`ladder/README.md`](ladder/README.md).
 

@@ -1,0 +1,147 @@
+[
+  {
+    "level": 1,
+    "title": "Prescriptive pseudocode (= spec_30.md)",
+    "expect": "pass (anchor)",
+    "dataset": "test-cases-30.csv",
+    "total": 23,
+    "greedy": 16,
+    "best": 16,
+    "converged": 0,
+    "min_iters": null,
+    "trajectories": 2,
+    "max_iters": 5,
+    "paths": [
+      [
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      [
+        16,
+        16,
+        5,
+        5,
+        5
+      ]
+    ]
+  },
+  {
+    "level": 2,
+    "title": "Declarative prose, tables kept",
+    "expect": "pass?",
+    "dataset": "test-cases-30.csv",
+    "total": 23,
+    "greedy": 0,
+    "best": 1,
+    "converged": 0,
+    "min_iters": null,
+    "trajectories": 2,
+    "max_iters": 5,
+    "paths": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        1,
+        1
+      ]
+    ]
+  },
+  {
+    "level": 3,
+    "title": "Business prose, tables removed",
+    "expect": "likely break",
+    "dataset": "test-cases-30.csv",
+    "total": 23,
+    "greedy": 0,
+    "best": 0,
+    "converged": 0,
+    "min_iters": null,
+    "trajectories": 2,
+    "max_iters": 5,
+    "paths": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "level": 4,
+    "title": "Natural rules (% and prose tiers)",
+    "expect": "break",
+    "dataset": "test-cases-30.csv",
+    "total": 23,
+    "greedy": 0,
+    "best": 0,
+    "converged": 0,
+    "min_iters": null,
+    "trajectories": 2,
+    "max_iters": 5,
+    "paths": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "level": 5,
+    "title": "Raw requirement (True/False)",
+    "expect": "fail (anchor)",
+    "dataset": "test-cases-30-tf.csv",
+    "total": 23,
+    "greedy": 0,
+    "best": 0,
+    "converged": 0,
+    "min_iters": null,
+    "trajectories": 2,
+    "max_iters": 5,
+    "paths": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+]

@@ -63,6 +63,42 @@ top of the ladder: fully prescriptive pseudocode, keyed to the data, and even th
 is one whitespace byte wide. Anything more natural doesn't degrade gracefully — it stops
 compiling.
 
+## Finding 4 — repair loops rescue *nothing* (one wrong constant is out of reach)
+
+Running the generate→score→**repair** loop (iter 1 greedy, then localized feedback —
+traceback for crashes, per-row diffs for numbers — over 2 trajectories × 5 iters) converges
+**0/2 on every rung** ([`results_ladder_repair.md`](results_ladder_repair.md)):
+
+| Rung | Greedy | Converged | Best after repair |
+|:--:|:--:|:--:|:--:|
+| L1 | 16/23 | 0/2 | 16/23 (one traj *regressed* to 5) |
+| L2 | 0/23 | 0/2 | 1/23 |
+| L3 | 0/23 | 0/2 | 0/23 |
+| L4 | 0/23 | 0/2 | 0/23 |
+| L5 | 0/23 | 0/2 | 0/23 |
+
+**L1 is the sharp one.** The stripped-prompt greedy misses on exactly the **7 capital-city
+rows** (rows 0/1/6/10/16/17/21 — karachi, lahore, islamabad, peshawar, karachi, quetta,
+karachi); every non-capital row passes. The cause is a **single wrong constant**: it wrote
+the Rule-R capital-city discount as `1 - 0.01` instead of `1 - 0.10` (1% vs 10%). Yet 4
+repair iterations across 2 trajectories never fixed it — the feedback is a per-row *total*
+(`row 0: got 97500, expected 88636`), and the model cannot map that back to "the capital-city
+*rate* is wrong" among 27 rules. It held at 16/23 or **regressed to 5/23**. This is the
+sweet-spot "a scalar diff can't localize the bug" result at 30-rule depth: even a one-line
+constant error is unreachable by row-total feedback.
+
+**L2–L5 stay crashed.** Traceback-localized feedback doesn't let the model manufacture
+runnable code for a de-scaffolded 27-rule pipeline. A telling move at L3: told "your code
+crashed," the model wrapped each row in a try/except that **skips** malformed rows — so it
+returns fewer than 23 dicts ("wrong return shape"), a plausible-looking but wrong response.
+
+**Takeaway: for a 27-rule spec on a 3B, iteration is not a lever.** The pass hinges entirely
+on getting the prescriptive spec *and* the exact prompt right up front; repair neither
+rescues the de-scaffolded rungs nor closes a single-constant gap. (This matches the
+sweet-spot result that plain `--repair` converged 0/3 on the hard rungs; there, only the
+white-box `--repair2 --fresh` regenerate-loop cracked them — but that targets numeric
+oscillation, whereas L2–L5 here fail earlier, at producing runnable code at all.)
+
 ## Files
 
 - [`specs/level_1.md`](specs/level_1.md) … [`level_5.md`](specs/level_5.md) — the five rung specs (only the dialect varies)
