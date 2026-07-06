@@ -34,6 +34,7 @@ experiments/sweet-spot/*/outputs/run_*.log
 
 # --- 30-rule experiment: drop regenerable live-run logs (result captured in the README) ---
 experiments/30-rule/run_*.log
+experiments/30-rule/**/run_*.log
 
 # --- Subproject: finetune-with-mlx (keep source, drop heavy/regenerable outputs) ---
 finetune-with-mlx/adapters/

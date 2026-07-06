@@ -71,6 +71,23 @@ So the 10-rule lesson ("hand over the literal lookup tables") sharpens at scale:
 over **keyed to match the data**, or a small model crashes on the lookup before any rule
 arithmetic runs.
 
+## Phase 2 — the spec-dialect ladder ([`ladder/`](ladder/))
+
+Holding the problem fixed and varying only the spec's dialect (prescriptive pseudocode →
+raw business requirement) locates where the 3B breaks — and the answer is stark:
+
+- **The pass is a knife-edge.** The same L1 spec that greedy-passes 23/23 via `solve_30.py`
+  drops to 16/23 when a single **trailing-newline byte** is stripped (controlled, same model
+  instance: `23/23` with the newline, `16/23` without). One byte, 7 rows.
+- **Below prescriptive pseudocode it collapses to 0/23 — via crashes** (KeyError lookups,
+  undefined names, syntax), not numeric drift. Even L2, which keeps the lookup tables
+  verbatim, can no longer emit runnable code.
+- **Scale raises the cliff:** the 10-rule ladder broke at L2→L3 (tables removed); at 30 rules
+  it breaks one rung higher, L1→L2 — the step-by-step imperative recipe itself is
+  load-bearing, tables alone aren't enough.
+
+Full data and interpretation in [`ladder/README.md`](ladder/README.md).
+
 ## Files
 
 - [`spec_30.md`](spec_30.md) — the precise, model-dialect spec handed to the 3B (the deliverable)

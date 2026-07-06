@@ -153,3 +153,15 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   to match the data." Also hardened the repair loop to feed the traceback (crashes localize;
   greedy passed before it was needed). Offline re-score: `prove_30.py` (total_receivables +
   escrow). A spec-only `model_solution_30.py` scores 23/23, proving the spec carries it.
+  Phase 2 — the dialect ladder (`experiments/30-rule/ladder/`, `run_ladder_30.py`, 5 rungs
+  L1 pseudocode → L5 raw requirement, greedy + best-of-5): two sharp findings. (1) **The
+  pass is a knife-edge** — L1 (= the deliverable spec) greedy-passes 23/23 via `solve_30.py`
+  but scores 16/23 in the ladder; the two prompts differ by exactly ONE byte (a trailing
+  newline `.strip()` removes), and a controlled same-instance test confirms `23/23` with it
+  vs `16/23` without — one byte, 7 rows (the extreme of the sweet-spot "greedy is a
+  knife-edge" caution). (2) **Scale raises the cliff to L1→L2**: below prescriptive
+  pseudocode the 3B collapses to 0/23 and the failures are CRASHES (KeyError lookups,
+  undefined names, syntax) not numeric drift — even L2, which keeps the lookup tables
+  verbatim, can't emit runnable code. The 10-rule cliff was L2→L3 (tables); at 30 rules the
+  step-by-step imperative recipe itself is load-bearing, tables alone aren't enough. Full
+  data in `ladder/README.md`.
