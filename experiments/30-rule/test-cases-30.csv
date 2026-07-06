@@ -1,0 +1,24 @@
+productid,status,customer,season,volume,region,quarter,payment type,transaction type,product category,seller years,processing speed,tax verified,is high risk,requires correction,referral active,referral invoices remaining,city,senior citizen,first order,weight,Total_receivables,Escrow
+1,individual,strategic,winter,90,non-EMEA,Q2,credit-card,international,luxury,4,same-day,,no,no,no,0,karachi,no,no,1,88636.3884,900.0
+1,individual,strategic,winter,900,non-EMEA,Q1,credit-card,international,groceries,3,standard,,no,no,no,0,lahore,no,no,1,691416.0,9000.0
+1,individual,non-strategic,winter,90,EMEA,Q4,credit-card,international,luxury,5,same-day,no,yes,yes,yes,8,hyderabad,no,no,1,107644.304511,900.0
+1,individual,non-strategic,spring,90,EMEA,Q3,credit-card,domestic,electronics,0,next-day,,no,no,no,0,sukkur,no,no,1,110303.55,900.0
+1,corporate,strategic,summer,315,non-EMEA,Q1,credit-card,cross-border,groceries,3,standard,,no,no,no,0,ferozpur,no,no,1,245515.536,2835.0
+2,corporate,strategic,summer,1790,non-EMEA,Q2,ach/wire,cross-border,groceries,6,same-day,,no,no,no,0,dera ghazi khan,yes,yes,22,1469906.333411,21480.0
+1,individual,non-strategic,autumn,747,non-EMEA,Q1,ach/wire,cross-border,electronics,4,next-day,,no,no,no,0,islamabad,no,yes,1,665617.06908,7470.0
+2,individual,strategic,summer,971,non-EMEA,Q3,ach/wire,domestic,electronics,1,same-day,,no,no,no,0,faislabad,no,no,1,1576690.38,14565.0
+1,individual,strategic,winter,1773,EMEA,Q1,ach/wire,international,electronics,8,same-day,,no,no,no,0,rawalpindi,no,no,25,1542131.957394,17730.0
+3,individual,strategic,spring,1718,EMEA,Q2,credit-card,cross-border,luxury,4,same-day,,no,no,no,0,rawalpindi,yes,no,1,3223800.1992,34360.0
+2,corporate,strategic,autumn,170,EMEA,Q1,ach/wire,domestic,luxury,2,standard,,no,no,no,0,peshawar,yes,yes,32,155013.946185,2040.0
+3,individual,non-strategic,spring,86,EMEA,Q4,ach/wire,cross-border,groceries,10,next-day,,no,no,no,0,faislabad,no,no,1,164437.504,1720.0
+3,individual,strategic,autumn,1826,non-EMEA,Q2,ach/wire,international,groceries,8,standard,,no,no,no,0,faislabad,no,no,1,2453720.66016,36520.0
+3,individual,non-strategic,winter,850,non-EMEA,Q4,credit-card,domestic,luxury,3,standard,,no,no,no,0,ferozpur,no,no,1,1476778.44,17000.0
+3,individual,strategic,spring,198,EMEA,Q3,credit-card,international,groceries,3,next-day,,no,no,no,0,nawabshah,yes,no,1,351216.2808,3960.0
+3,corporate,strategic,spring,1113,non-EMEA,Q1,credit-card,international,groceries,10,same-day,,no,no,no,0,sialkot,no,no,1,1353542.68413,18921.0
+3,corporate,strategic,spring,449,non-EMEA,Q1,ach/wire,international,electronics,3,standard,,no,no,no,0,karachi,no,no,1,559743.156,7633.0
+2,individual,non-strategic,winter,12,EMEA,Q2,credit-card,cross-border,groceries,7,standard,,no,no,no,0,quetta,no,yes,1,14973.0849,180.0
+3,individual,strategic,autumn,1020,non-EMEA,Q2,ach/wire,international,electronics,0,next-day,,no,no,no,0,larkana,yes,no,1,2004381.9264,20400.0
+3,corporate,strategic,summer,6000,non-EMEA,Q2,ach/wire,international,electronics,6,standard,yes,no,no,no,0,multan,no,no,1,6695446.464,102000.0
+1,individual,non-strategic,summer,0,non-EMEA,Q3,ach/wire,domestic,groceries,0,standard,yes,no,no,no,0,multan,no,no,1,2.5,0.0
+3,corporate,strategic,spring,1500,EMEA,Q1,ach/wire,international,luxury,6,same-day,yes,no,no,yes,5,karachi,yes,yes,25,1573757.439949,25500.0
+2,individual,non-strategic,winter,500,EMEA,Q4,credit-card,cross-border,electronics,3,next-day,no,yes,yes,no,0,multan,yes,yes,30,766362.733975,7500.0
