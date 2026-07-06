@@ -92,6 +92,24 @@ raw business requirement) locates where the 3B breaks — and the answer is star
 
 Full data and interpretation in [`ladder/README.md`](ladder/README.md).
 
+## Phase 3 — out-of-box: voting vs. decomposition ([`outofbox/`](outofbox/))
+
+Two non-standard attacks, pointing opposite ways:
+
+- **Ensemble voting** (aggregate many full attempts, per-row majority) — **not viable.**
+  Temperature sampling of a ~120-line function crashes ≈75% of the time; across three
+  regimes the correct per-row value appeared in the committee for only 2–9 of 23 rows, so
+  voting never beat the best single. You can't build a committee — the knife-edge again.
+- **Rule-by-rule compiler** (decompose into ~24 atomic pure functions, unit-test each,
+  assemble deterministically) — **works: 23/23**, with 27/28 functions passing on the first
+  or second try. Assembly was the bottleneck; atomic rules are easy. The one per-run miss is
+  always a known dialect trap shrunk to a single testable function (the ambiguous "1000/900"
+  shorthand; the empty-tax-cell withholding case — the original truthy-string trap).
+
+Takeaway: at 30 rules, leverage comes from **reducing the unit of generation** (decompose →
+reliable + verifiable), not from **aggregating full attempts** (vote → no committee). Full
+detail in [`outofbox/README.md`](outofbox/README.md).
+
 ## Files
 
 - [`spec_30.md`](spec_30.md) — the precise, model-dialect spec handed to the 3B (the deliverable)

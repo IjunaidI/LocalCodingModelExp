@@ -1,0 +1,180 @@
+{
+  "functions_total": 28,
+  "functions_model_ok": 27,
+  "model_failed": [
+    "withholding_rate"
+  ],
+  "assembled_score": 23,
+  "total": 23,
+  "retries": 4,
+  "report": [
+    {
+      "function": "product_rate",
+      "status": "OK",
+      "tries": 4,
+      "note": "ok"
+    },
+    {
+      "function": "spring_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "volume_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "strategic_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "loyalty_status",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "loyalty_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "region_loading_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "payment_loading_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "quarter_loading_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "zone_loading_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "speed_loading_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "category_multiplier",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "risk_fee_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "referral_credit_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "correction_fee",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "min_fee",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "withholding_rate",
+      "status": "FAIL",
+      "tries": 4,
+      "note": "('',) -> 0.0, expected 0.03"
+    },
+    {
+      "function": "capital_city_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "senior_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "first_order_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "luxury_tax_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "heavy_weight_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "accelerator_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "bundle_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "corp_incentive_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "global_expansion_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "elite_rate",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    },
+    {
+      "function": "escrow_amount",
+      "status": "OK",
+      "tries": 1,
+      "note": "ok"
+    }
+  ]
+}

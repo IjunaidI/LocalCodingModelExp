@@ -1,0 +1,42 @@
+{
+  "k": 12,
+  "temp": 0.3,
+  "spec": "ladder/specs/level_1.md",
+  "n": 23,
+  "running": 3,
+  "individual": [
+    5,
+    5,
+    0
+  ],
+  "best_single": 5,
+  "ensemble_majority": 5,
+  "ensemble_median": 9,
+  "correct_available": 9,
+  "per_row_agreement": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    1,
+    1
+  ],
+  "verdict": "errors are CORRELATED \u2014 voting does not beat the best single program"
+}

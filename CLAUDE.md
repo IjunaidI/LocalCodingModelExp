@@ -173,3 +173,17 @@ ground truth 12/12, targets identical across flag formats (diff 0.0), and buggy 
   a 27-rule pipeline — matches the sweet-spot plain-`--repair` 0/3; only `--repair2 --fresh`
   cracked hard rungs there, but that targets numeric oscillation, not the unrunnable-code
   failure seen here. Full data in `ladder/README.md`.
+- Round 3 — out-of-box (DONE, 2026-07-06, `experiments/30-rule/outofbox/`, `ensemble_vote.py`
+  + `compiler.py`): voting vs decomposition, opposite outcomes. (1) **Ensemble voting** (K
+  samples, per-row majority of numeric outputs) is **not viable** — sampling a ~120-line
+  function crashes ≈75% even at temp 0.3; across 3 regimes the correct per-row value was in
+  the committee for only 2–9/23 rows, so majority never beat the best single (median edged 9
+  vs 5 once). Restates the knife-edge: no committee to vote with. (2) **Rule-by-rule
+  compiler** (model writes ~24 atomic pure functions, each unit-tested + resampled, a FIXED
+  assembler wires them) **works: assembled 23/23, 27/28 functions pass first/second try** —
+  confirming assembly was the bottleneck, not per-rule correctness. The single per-run miss
+  is always a dialect trap shrunk to one testable function: `product_rate`'s ambiguous
+  "1000/900" shorthand (read as division; fixed by rewording the micro-spec) or
+  `withholding_rate` on the empty tax cell (the original truthy-string trap). Lesson: at 30
+  rules leverage is REDUCING the unit of generation (decompose → reliable + verifiable), not
+  aggregating full attempts (vote). Full data in `outofbox/README.md`.
